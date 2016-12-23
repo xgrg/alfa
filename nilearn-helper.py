@@ -12,6 +12,18 @@ import numpy as np
 from PIL import Image
 import io
 
+def plot_stat_map2(**kwargs):
+    cut_coords = kwargs['cut_coords']
+    row_l = kwargs['row_l']
+    lines_nb = int(len(cut_coords) / row_l)
+    for line in xrange(lines_nb):
+        opt = dict(kwargs)
+        opt.pop('row_l')
+        opt['cut_coords'] = cut_coords[line * row_l: (line +1) *row_l]
+        plotting.plot_stat_map(**opt)
+
+
+
 def plot_stat_map(img, start, end, step=1, row_l=6, title='', threshold=None,
                   axis='z', method='plot_stat_map', overlay=None, pngfile=None):
     ''' Generates a multiple row plot instead of the very large native plot,
@@ -28,6 +40,7 @@ def plot_stat_map(img, start, end, step=1, row_l=6, title='', threshold=None,
                'colorbar':True,
                'black_bg':True,
                'display_mode':axis,
+               #'bg_img': bg_img,
                'threshold':threshold,
                'cut_coords':range(start + line * row_l * step,
                                        start + (line+1) * row_l * step,
