@@ -17,8 +17,8 @@ from sklearn import linear_model
 #======================================================================
 
 # Taking the list of subjects from a previously used design matrix
-df = pd.read_excel('/home/grg/spm/designmatrix2.xls')
-subjects = df['Subj_ID'].tolist()
+import json
+subjects = json.load(open('/home/grg/spm/data/subjects.json'))
 
 found = 0
 notfound = []
@@ -79,11 +79,11 @@ print 'Swapping Jac'
 
 #nb_subjects, dimX, dimY, dimZ = mdsw.shape
 #print 'Iterating linear model', mdsw.shape, jacrsw.shape
-#pval_list = []
-#stderr_list = []
+#r_list = []
+#err_list = []
+#ypred_list = []
+#ycorr_list = []
 
-method = 'normal'
-print method
 
 #for i in xrange(dimX):
 #    print i
@@ -91,34 +91,31 @@ print method
 #        for k in xrange(dimZ):
 #            y,x = mdsw[:,i,j,k], jacrsw[:,i,j,k]
 #
+#            slope, intercept, r_value, p_value, std_err = stats.linregress(x,y)
 #
-#            if method == 'normal':
-#                slope, intercept, r_value, p_value, std_err = stats.linregress(x,y)
+#            #err_list.append(std_err)
+#            r_list.append(r_value)
+#            ypred = x*slope + intercept
+#            err = ypred - y
+#            ycorr = np.mean(y) - err
 #
-#            elif method == 'ransac':
-#                x = x.reshape((x.size, 1))
-#                y = y.reshape((y.size, 1))
-#                model_ransac = linear_model.RANSACRegressor(linear_model.LinearRegression())
-#                model_ransac.fit(x, y)
-#                sse = np.sum((model_ransac.predict(x) - y) ** 2, axis=0) / float(x.shape[0] - x.shape[1])
-#                se = np.array([
-#                        np.sqrt(np.diagonal(sse[i] * np.linalg.inv(np.dot(x.T, x))))
-#                                                                    for i in range(sse.shape[0])
-#			])
-#                t = model_ransac.estimator_.coef_ / se
-#                p_value = 2 * (1 - stats.t.cdf(np.abs(t), y.shape[0] - x.shape[1]))
-#                std_err = se
-#
-#            stderr_list.append(std_err)
-#            pval_list.append(p_value)
+#            #ypred_list.extend(ypred)
+#            ycorr_list.extend(ycorr)
+#            #err_list.extend(err)
 
-print 'swapping and saving'
-#np.save('/tmp/pval_list.npy', np.array(pval_list))
-#np.save('/tmp/stderr_list.npy', np.array(stderr_list))
-#pmap_im = np.array(pval_list).reshape((dimX, dimY, dimZ))
-#stderr_im = np.array(stderr_list).reshape((dimX, dimY, dimZ))
-#pmap_im = np.swapaxes(pmap_im, 1,2)
-#stderr_im = np.swapaxes(stderr_im, 1,2)
+print 'saving r list'
+#np.save('/tmp/r_list.npy', np.array(r_list))
+
+#err = np.array(err_list).reshape(mdsw.shape)
+#ypred = np.array(ypred_list).reshape(mdsw.shape)
+#ycorr = np.array(ycorr_list).reshape(mdsw.shape)
+
+print 'saving errors'
+#np.save('/tmp/err.npy', np.array(err))
+print 'saving y pred'
+#np.save('/tmp/ypred.npy', np.array(ypred))
+print 'saving y corr'
+#np.save('/tmp/ycorr.npy', ycorr)
 
 #ima = image.new_img_like('/home/grg/spm/MD/10134_MD_MNIspace_s.nii', pmap_im)
 #ima.to_filename('/tmp/p_map2.nii.gz')
@@ -127,19 +124,37 @@ print 'swapping and saving'
 #ima.to_filename('/tmp/stderr_map2.nii.gz')
 
 print 'applying correction to every map'
+#
+ypred = np.load('/tmp/ypred.npy').reshape((109,91,91, 514))
+ycorr = np.load('/tmp/ycorr.npy').reshape((109,91,91, 514))
 
-stderr_im = np.array(nib.load('/tmp/stderr_map2.nii.gz').dataobj)
-stderr_im = np.swapaxes(stderr_im, 0, 1)
+print 'first building r-value map'
+#r = np.load('/tmp/r_list.npy')
+#r = np.swapaxes(r.reshape(ypred.shape[:]), 1, 2)
+#r = np.swapaxes(r, 0 ,1)
+#r_im = image.new_img_like('/home/grg/spm/MD/10134_MD_MNIspace_s.nii', r)
+#r_im.to_filename('/tmp/r_map.nii.gz')
+
+print ypred.shape, ycorr.shape#, r.shape
 
 for i, subject in enumerate(subjects):
-    subject = str(subject)[:5]
     print subject, i
     try:
         mdfp = glob('/home/grg/spm/MD/*%s*.nii'%subject)[0]
         md = np.array(nib.load(mdfp).dataobj)
-        md_corr = md + stderr_im
+        print 'md', md.shape
+        print ycorr.shape
+        md_corr = ycorr[:,:,:,i].reshape(ycorr.shape[:3]) #(dimX, dimZ, dimY))
+        md_corr = np.swapaxes(md_corr, 1,2)
+        md_corr = np.swapaxes(md_corr, 0,1)
+        print md_corr.shape
         img = image.new_img_like(mdfp, md_corr)
         img.to_filename('/home/grg/spm/MD_corr/%s_MD_corr.nii'%subject)
+        md_pred = ypred[:,:,:,i].reshape(ypred.shape[:3])
+        md_pred = np.swapaxes(md_pred, 1,2)
+        md_pred = np.swapaxes(md_pred, 0,1)
+        img = image.new_img_like(mdfp, md_pred)
+        img.to_filename('/home/grg/spm/MD_pred/%s_MD_pred.nii'%subject)
 
     except IndexError:
         print subject, 'missing'
