@@ -26,71 +26,28 @@ except ImportError as e:
 MatlabCommand.set_default_paths('/usr/local/MATLAB/R2014a/toolbox/spm12')
 MatlabCommand.set_default_matlab_cmd('matlab -nodesktop -nosplash')
 
-# === Building regressors with data from a provided Excel file ===
-
-def make_vectors_original_version(data, verbose=True):
-
-    names = ['Apoe2-3', 'Apoe2-4', 'Apoe3-3', 'Apoe3-4', 'Apoe4-4',
-                    'age23', 'age24', 'age33', 'age34', 'age44',
-                    'agesq23', 'agesq24', 'agesq33', 'agesq34', 'agesq44',
-                    'Gender(0=female)', 'Years of Education']
-    if verbose:
-        print 'Columns used in the model:', names
-
-    # Model Design
-    vectors = [data[each].tolist() for each in names]
-
-    return vectors, names
-
-def make_vectors_original_version_with_ventricles_FS(data, verbose=True):
-
-    names = ['Apoe2-3', 'Apoe2-4', 'Apoe3-3', 'Apoe3-4', 'Apoe4-4',
-                    'age23', 'age24', 'age33', 'age34', 'age44',
-                    'agesq23', 'agesq24', 'agesq33', 'agesq34', 'agesq44', 'ventricles_FS',
-                    'Gender(0=female)', 'Years of Education']
-    if verbose:
-        print 'Columns used in the model:', names
-
-    # Model Design
-    vectors = [data[each].tolist() for each in names]
-
-    return vectors, names
-
-def make_vectors_original_version_with_ventricles_JDG(data, verbose=True):
-
-    names = ['Apoe2-3', 'Apoe2-4', 'Apoe3-3', 'Apoe3-4', 'Apoe4-4',
-                    'age23', 'age24', 'age33', 'age34', 'age44',
-                    'agesq23', 'agesq24', 'agesq33', 'agesq34', 'agesq44', 'ventricles_JDG',
-                    'Gender(0=female)', 'Years of Education']
-    if verbose:
-        print 'Columns used in the model:', names
-
-    # Model Design
-    vectors = [data[each].tolist() for each in names]
-
-    return vectors, names
-
-def make_vectors_just_age(data, verbose=True):
-    ''' This version removes the genotype from the model and performs an F-test for
-    the main effect of age on Mean diffusivity'''
-
-    names = [ 'age23', 'age24', 'age33', 'age34', 'age44',
-                    'agesq23', 'agesq24', 'agesq33', 'agesq34', 'agesq44', 'ventricles_FS',
-                    'Gender(0=female)', 'Years of Education']
-
-    # Model Design
-    vectors = [data[each].tolist() for each in names]
-    agesq = [sum([vectors[names.index(e)][i] for e in ['agesq23', 'agesq24', 'agesq33', 'agesq34', 'agesq44']]) for i in xrange(len(vectors[names.index('agesq23')]))]
-    age = [sum([vectors[names.index(e)][i] for e in ['age23', 'age24', 'age33', 'age34', 'age44']]) for i in xrange(len(vectors[names.index('age23')]))]
-    vectors = [age, agesq, vectors[names.index('Gender(0=female)')], vectors[names.index('Years of Education')]]
-    names = ['age', 'agesq', 'Gender(0=female)', 'Years of Education']
-
-    if verbose:
-        print 'Columns used in the model:', names
-
-    return vectors, names
-
 # === Building contrasts vectors depending on the analysis ===
+
+def make_contrasts_interaction_linearage():
+    cont1 = ('Apo2-3>Apo2-4', 'T', ['Apoe2-3', 'Apoe2-4'], [1,-1])
+    cont2 = ('Apo2-4>Apo3-3', 'T', ['Apoe2-4', 'Apoe3-3'], [1,-1])
+    cont3 = ('Apo3-3>Apo3-4', 'T', ['Apoe3-3', 'Apoe3-4'], [1,-1])
+    cont4 = ('Apo3-4>Apo4-4', 'T', ['Apoe3-4', 'Apoe4-4'], [1,-1])
+    cont5 = ('Main effect ApoE', 'F', [cont1, cont2, cont3, cont4])
+    cont6 = ('age23>age24', 'T', ['age23', 'age24'], [1,-1])
+    cont7 = ('age24>age33', 'T', ['age24', 'age33'], [1,-1])
+    cont8 = ('age33>age34', 'T', ['age33', 'age34'], [1,-1])
+    cont9 = ('age34>age4-4', 'T', ['age34', 'age44'], [1,-1])
+    cont10 = ('Main effect linear age', 'F', [cont6, cont7, cont8, cont9])
+    cont11 = ('C<NC', 'T', ['Apoe2-3', 'Apoe2-4', 'Apoe3-3', 'Apoe3-4', 'Apoe4-4'], [3, -2, 3, -2, -2])
+    cont12 = ('C>NC', 'T', ['Apoe2-3', 'Apoe2-4', 'Apoe3-3', 'Apoe3-4', 'Apoe4-4'], [-3, 2, -3, 2, 2])
+    cont13 = ('HO<HZ', 'T', ['Apoe2-3', 'Apoe2-4', 'Apoe3-3', 'Apoe3-4', 'Apoe4-4'], [1, 1, 1, 1, -4])
+    cont14 = ('HO>HZ', 'T', ['Apoe2-3', 'Apoe2-4', 'Apoe3-3', 'Apoe3-4', 'Apoe4-4'], [-1, -1, -1, -1, 4])
+    cont15 = ('HO<All_Age_Linear', 'T', ['age23', 'age24', 'age33', 'age34', 'age44'], [3, -2, 3, -2, -2])
+    cont16 = ('HO>All_Age_Linear', 'T', ['age23', 'age24', 'age33', 'age34', 'age44'], [-3, 2, -3, 2, 2])
+    contrasts = [cont1, cont2, cont3, cont4, cont5, cont6, cont7, cont8, cont9, cont10, cont11, cont12, cont13, cont14, cont15, cont16]
+    return contrasts
+
 
 def make_contrasts_original_version():
     cont1 = ('Apo2-3>Apo2-4', 'T', ['Apoe2-3', 'Apoe2-4'], [1,-1])
@@ -107,12 +64,38 @@ def make_contrasts_original_version():
     contrasts = [cont1, cont2, cont3, cont4, cont5, cont6, cont7, cont8, cont9, cont10, cont11]
     return contrasts
 
-def make_contrasts_just_age():
-    contT = ('Main effect Agesq', 'T', names, [0,1,0,0])
-    contF = ('Main effect Agesq', 'F', [contT])
-    contrasts = [contT, contF]
+def make_contrasts_justage_educyears(names):
+    if len(names)==7:
+        cont1 = ('Effect Age', 'T', names, [0,0,0,0,0,1,0])
+        cont2 = ('Effect Gender', 'T', names, [0,0,0,0,0,0,1])
+        contrasts = [cont1, cont2]
+    elif len(names)==8:
+        cont1 = ('Effect Age', 'T', names, [0,0,0,0,0,1,0,0])
+        cont2 = ('Effect Gender', 'T', names, [0,0,0,0,0,0,1,0])
+        cont3 = ('Effect Educational Years', 'T', names, [0,0,0,0,0,0,0,1])
+        contrasts = [cont1, cont2, cont3]
     return contrasts
 
+def make_contrasts_agesq(names):
+    cont1 = ('Age - Agesq', 'T', names, [0,0,0,0,0,1,-1,0])
+    cont2 = ('Agesq - Age', 'T', names, [0,0,0,0,0,-1,1,0])
+    cont3 = ('Effect Age', 'T', names, [0,0,0,0,0,1,0,0])
+    cont4 = ('Effect Agesq', 'T', names, [0,0,0,0,0,0,1,0])
+    contF = ('Main effect Age', 'F', [cont1, cont2])
+    contF2 = ('Main effect Age (omnibus)', 'F', [cont3, cont4])
+    contrasts = [cont1, cont2, contF, cont3, cont4, contF2]
+
+    contrasts2 = []
+    for each in contrasts:
+        if each[1] == 'F':
+            contrasts2.append(each)
+        else:
+            e = list(each)
+            n = len(names) - len(e[-1])
+            e[-1].extend(n * [0])
+            contrasts2.append(e)
+
+    return contrasts2
 
 def make_contrasts_fullfactorial_version():
     cont1 = ('Positive effect Genotype1', 'T', ['genotype_{1}', 'genotype_{2}'], [1,-1])
@@ -131,8 +114,6 @@ def multiple_regression_analysis(scans, vectors, names, contrasts, destdir, expl
     ''' Runs a Multiple Regression analysis over a given type of parametric maps (param),
     using data from an Excel sheet as regressors (columns in 'names')
     and a given explicit mask.
-
-    $param$ identifies a column from the Excel
 
     The whole analysis will be performed in the directory 'destdir'.'''
 
@@ -177,64 +158,60 @@ def multiple_regression_analysis(scans, vectors, names, contrasts, destdir, expl
 
 # === Versions of the analysis
 
-def original_version(param, excel_file, destdir, explicitmask, analysis_name):
+def generic_version(excel_file, destdir, explicitmask, analysis_name):
 
     print 'Analysis name:', analysis_name
 
     data = pd.read_excel(excel_file)
+
+    param = data.columns[0]
+    print 'First column:', param
     scans = data[param].tolist()
 
-    vectors, names = make_vectors_original_version(data)
-    contrasts = make_contrasts_original_version()
+    names = list(data.columns[1:])
+    print 'Columns in the model:', names
+    vectors = [data[e].tolist() for e in names]
+
+    # Defining contrasts based on model..
+    if 'justage' in analysis_name:
+        print '### Justage model identified ###'
+        contrasts = make_contrasts_justage_educyears(names)
+    elif 'educyears' in analysis_name:
+        print '### Linearage and educyears model identified ###'
+        contrasts = make_contrasts_justage_educyears(names)
+    elif 'interaction' in analysis_name:
+        print '### Interaction linearage model identified ###'
+        contrasts = make_contrasts_interaction_linearage()
+    elif 'agesq' in analysis_name:
+        print '### Agesq identified'
+        contrasts = make_contrasts_agesq(names)
+    else:
+        print '### No model type identified: using standard contrasts###'
+        contrasts = make_contrasts_original_version()
 
     a = multiple_regression_analysis(scans, vectors, names, contrasts, destdir, explicitmask, analysis_name)
     return a
 
-def original_version_ventFS(param, excel_file, destdir, explicitmask, analysis_name):
+def fullfactorial(excel_file, destdir, explicitmask, analysis_name):
 
     print 'Analysis name:', analysis_name
 
     data = pd.read_excel(excel_file)
+    param = data.columns[0]
+    print 'First column:', param
     scans = data[param].tolist()
 
-    vectors, names = make_vectors_original_version_with_ventricles_FS(data)
-    contrasts = make_contrasts_original_version()
-
-    a = multiple_regression_analysis(scans, vectors, names, contrasts, destdir, explicitmask, analysis_name)
-    return a
-
-def original_version_ventJDG(param, excel_file, destdir, explicitmask, analysis_name):
-
-    print 'Analysis name:', analysis_name
-
-    data = pd.read_excel(excel_file)
-    scans = data[param].tolist()
-
-    vectors, names = make_vectors_original_version_with_ventricles_JDG(data)
-    contrasts = make_contrasts_original_version()
-
-    a = multiple_regression_analysis(scans, vectors, names, contrasts, destdir, explicitmask, analysis_name)
-    return a
-
-def fullfactorial(param, excel_file, destdir, explicitmask, analysis_name):
-
-    print 'Analysis name:', analysis_name
-    import json
-
-    data = pd.read_excel(excel_file)
-    scans = data[param].tolist()
-
-    vectors, names = make_vectors_just_age(data)
+    names = list(data.columns[1:])
+    print 'Columns in the model:', names
+    vectors = [data[e].tolist() for e in names]
 
     contrasts = make_contrasts_fullfactorial_version()
 
     import numpy as np
-    groups = [np.sum(data['Apoe2-3']),
-              np.sum(data['Apoe2-4']),
-              np.sum(data['Apoe3-3']),
-              np.sum(data['Apoe3-4']),
-              np.sum(data['Apoe4-4'])]
-
+    groups = [102, 44, 143, 160, 65]
+    print sum(groups), len(data.index)
+    assert(sum(groups) == len(data.index))
+    groups_names = ['Apoe2-3', 'Apoe2-4', 'Apoe3-3', 'Apoe3-4', 'Apoe4-4']
 
     cells = []
     print groups
@@ -247,7 +224,6 @@ def fullfactorial(param, excel_file, destdir, explicitmask, analysis_name):
         lastlen = lengrp + lastlen
         print lastlen
         cells.append(cell)
-
 
     print cells
     print 'Analysis name:', analysis_name
@@ -301,40 +277,29 @@ if __name__ == '__main__':
                     Consists in three steps: Model design / Model estimation / Contrast estimation
 	    '''))
 
-    parser.add_argument("param", type=str, help='Type of parametric maps to run the analysis on')
     parser.add_argument("excel", type=str, help='Excel file containing the model data')
     parser.add_argument("destdir", type=str, help='Destination directory')
     parser.add_argument("--mask", type=str, help='Explicit mask used in the analysis', required=False, default='/home/grg/spm/MNI_T1_brain_mask.nii')
+    parser.add_argument("--design", type=str, help='Design (0: Multiple Regression - 1: Full Factorial)', required=False, default=0)
 
     parser.add_argument("-v", dest='verbose', action='store_true', required=False, default=True)
     args = parser.parse_args()
 
-    param = args.param
     excel = args.excel
     mask = args.mask
     destdir = args.destdir
+    design = args.design
 
     print 'Excel file:', excel
     print 'mask file:', mask
     print 'destination directory:', destdir
 
-#    print 'First analysis without ventricular volumes in the model'
-#    for param in ['MD', 'MD_pred', 'MD_corr', 'Jacobians']: #, 'FA', 'L1', 'RD']:
-#
-#        a = original_version(param, excel, destdir, mask, analysis_name='%s_wo_ventvol'%param)
-#        a.run()
-#
-#    print 'Second analysis with FreeSurfer ventricular volumes in the model'
-#    for param in ['MD', 'MD_pred', 'MD_corr', 'Jacobians']: #, 'FA', 'L1', 'RD']:
-#
-#        a = original_version_ventFS(param, excel, destdir, mask, analysis_name='%s_w_FS_ventvol'%param)
-#        a.run()
-#
-#    print 'Third analysis with JDG ventricular volumes in the model'
-#    for param in ['MD', 'MD_pred', 'MD_corr', 'Jacobians']: #, 'FA', 'L1', 'RD']:
-#
-#        a = original_version_ventJDG(param, excel, destdir, mask, analysis_name='%s_w_JDG_ventvol'%param)
-#        a.run()
-
-    a = fullfactorial(param, excel, destdir, mask, analysis_name='test_fullfact')
-    a.run()
+    if design==1:
+        print 'Full Factorial Design'
+        a = fullfactorial(excel, destdir, mask, analysis_name='test_fullfact')
+        a.run()
+    else:
+        import os.path as osp
+        aname = osp.splitext(osp.split(excel)[1])[0]
+        a = generic_version(excel, destdir, mask, analysis_name=aname)
+        a.run()
