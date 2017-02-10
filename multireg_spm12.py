@@ -38,7 +38,7 @@ def make_contrasts_interaction_linearage():
     cont7 = ('age24>age33', 'T', ['age24', 'age33'], [1,-1])
     cont8 = ('age33>age34', 'T', ['age33', 'age34'], [1,-1])
     cont9 = ('age34>age4-4', 'T', ['age34', 'age44'], [1,-1])
-    cont10 = ('Main effect linear age', 'F', [cont6, cont7, cont8, cont9])
+    cont10 = ('Interaction linear age-genotype', 'F', [cont6, cont7, cont8, cont9])
     cont11 = ('C<NC', 'T', ['Apoe2-3', 'Apoe2-4', 'Apoe3-3', 'Apoe3-4', 'Apoe4-4'], [3, -2, 3, -2, -2])
     cont12 = ('C>NC', 'T', ['Apoe2-3', 'Apoe2-4', 'Apoe3-3', 'Apoe3-4', 'Apoe4-4'], [-3, 2, -3, 2, 2])
     cont13 = ('HO<HZ', 'T', ['Apoe2-3', 'Apoe2-4', 'Apoe3-3', 'Apoe3-4', 'Apoe4-4'], [1, 1, 1, 1, -4])
@@ -49,53 +49,91 @@ def make_contrasts_interaction_linearage():
     return contrasts
 
 
-def make_contrasts_original_version():
-    cont1 = ('Apo2-3>Apo2-4', 'T', ['Apoe2-3', 'Apoe2-4'], [1,-1])
-    cont2 = ('Apo2-4>Apo3-3', 'T', ['Apoe2-4', 'Apoe3-3'], [1,-1])
-    cont3 = ('Apo3-3>Apo3-4', 'T', ['Apoe3-3', 'Apoe3-4'], [1,-1])
-    cont4 = ('Apo3-4>Apo4-4', 'T', ['Apoe3-4', 'Apoe4-4'], [1,-1])
-    cont5 = ('Main effect ApoE', 'F', [cont1, cont2, cont3, cont4])
-    cont6 = ('C<NC', 'T', ['Apoe2-3', 'Apoe2-4', 'Apoe3-3', 'Apoe3-4', 'Apoe4-4'], [3, -2, 3, -2, -2])
-    cont7 = ('C>NC', 'T', ['Apoe2-3', 'Apoe2-4', 'Apoe3-3', 'Apoe3-4', 'Apoe4-4'], [-3, 2, -3, 2, 2])
-    cont8 = ('HO<HZ', 'T', ['Apoe2-3', 'Apoe2-4', 'Apoe3-3', 'Apoe3-4', 'Apoe4-4'], [1, 1, 1, 1, -4])
-    cont9 = ('HO>HZ', 'T', ['Apoe2-3', 'Apoe2-4', 'Apoe3-3', 'Apoe3-4', 'Apoe4-4'], [-1, -1, -1, -1, 4])
-    cont10 = ('HO<All_Age_Squared', 'T', ['agesq23', 'agesq24', 'agesq33', 'agesq34', 'agesq44'], [3, -2, 3, -2, -2])
-    cont11 = ('HO>All_Age_Squared', 'T', ['agesq23', 'agesq24', 'agesq33', 'agesq34', 'agesq44'], [-3, 2, -3, 2, 2])
-    contrasts = [cont1, cont2, cont3, cont4, cont5, cont6, cont7, cont8, cont9, cont10, cont11]
+def make_contrasts(names):
+
+    contrasts = []
+
+    if 'Apoe2-3' in names:
+        print 'ApoE groups detected'
+
+        cont1 = ('Apo2-3>Apo2-4', 'T', ['Apoe2-3', 'Apoe2-4'], [1,-1])
+        cont2 = ('Apo2-4>Apo3-3', 'T', ['Apoe2-4', 'Apoe3-3'], [1,-1])
+        cont3 = ('Apo3-3>Apo3-4', 'T', ['Apoe3-3', 'Apoe3-4'], [1,-1])
+        cont4 = ('Apo3-4>Apo4-4', 'T', ['Apoe3-4', 'Apoe4-4'], [1,-1])
+        cont5 = ('Main effect ApoE', 'F', [cont1, cont2, cont3, cont4])
+        cont6 = ('C<NC', 'T', ['Apoe2-3', 'Apoe2-4', 'Apoe3-3', 'Apoe3-4', 'Apoe4-4'], [3, -2, 3, -2, -2])
+        cont7 = ('C>NC', 'T', ['Apoe2-3', 'Apoe2-4', 'Apoe3-3', 'Apoe3-4', 'Apoe4-4'], [-3, 2, -3, 2, 2])
+        cont8 = ('HO<HZ', 'T', ['Apoe2-3', 'Apoe2-4', 'Apoe3-3', 'Apoe3-4', 'Apoe4-4'], [1, 1, 1, 1, -4])
+        cont9 = ('HO>HZ', 'T', ['Apoe2-3', 'Apoe2-4', 'Apoe3-3', 'Apoe3-4', 'Apoe4-4'], [-1, -1, -1, -1, 4])
+
+        contrasts.extend([cont1, cont2, cont3, cont4, cont5, cont6, cont7, cont8, cont9])
+
+    if 'age23' in names:
+        print 'Interaction linear age-genotype detected'
+
+        cont10 = ('age23>age24', 'T', ['age23', 'age24'], [1,-1])
+        cont11 = ('age24>age33', 'T', ['age24', 'age33'], [1,-1])
+        cont12 = ('age33>age34', 'T', ['age33', 'age34'], [1,-1])
+        cont13 = ('age34>age44', 'T', ['age34', 'age44'], [1,-1])
+        cont14 = ('Interaction linear age-genotype', 'F', [cont10, cont11, cont12, cont13])
+        cont15 = ('C<NC_Age_Linear', 'T', ['age23', 'age24', 'age33', 'age34', 'age44'], [3, -2, 3, -2, -2])
+        cont16 = ('C>NC_Age_Linear', 'T', ['age23', 'age24', 'age33', 'age34', 'age44'], [-3, 2, -3, 2, 2])
+        cont17 = ('HO<HZ_Age_Linear', 'T', ['age23', 'age24', 'age33', 'age34', 'age44'], [1, 1, 1, 1, -4])
+        cont18 = ('HO>HZ_Age_Linear', 'T', ['age23', 'age24', 'age33', 'age34', 'age44'], [-1, -1, -1, -1, 4])
+
+        contrasts.extend([cont10, cont11, cont12, cont13, cont14, cont15, cont16, cont17, cont18])
+
+    if 'agesq23' in names:
+        print 'Interaction quadratic age-genotype detected'
+
+        cont19 = ('agesq23>agesq24', 'T', ['agesq23', 'agesq24'], [1,-1])
+        cont20 = ('agesq24>agesq33', 'T', ['agesq24', 'agesq33'], [1,-1])
+        cont21 = ('agesq33>agesq34', 'T', ['agesq33', 'agesq34'], [1,-1])
+        cont22 = ('agesq34>agesq44', 'T', ['agesq34', 'agesq44'], [1,-1])
+        cont23 = ('Interaction Age square-genotype', 'F', [cont19, cont20, cont21, cont22])
+        cont24 = ('C<NC_Age_Square', 'T', ['agesq23', 'agesq24', 'agesq33', 'agesq34', 'agesq44'], [3, -2, 3, -2, -2])
+        cont25 = ('C>NC_Age_Square', 'T', ['agesq23', 'agesq24', 'agesq33', 'agesq34', 'agesq44'], [-3, 2, -3, 2, 2])
+        cont26 = ('HO<HZ_Age_Square', 'T', ['agesq23', 'agesq24', 'agesq33', 'agesq34', 'agesq44'], [1, 1, 1, 1, -4])
+        cont27 = ('HO>HZ_Age_Square', 'T', ['agesq23', 'agesq24', 'agesq33', 'agesq34', 'agesq44'], [-1, -1, -1, -1, 4])
+
+        contrasts.extend([cont19, cont20, cont21, cont22, cont23, cont24, cont25, cont26, cont27])
+
+    cov = {'age': 'Linear age',
+            'agesq': 'Age square',
+            'educyears': 'Educational Years',
+            'gender': 'Gender'}
+
+    for k, v in cov.items():
+        if k in names:
+            print 'Main effect of %s'%v
+            c = ('Effect %s'%v, 'T', [k], [1])
+            contrasts.append(c)
+
     return contrasts
 
 def make_contrasts_justage_educyears(names):
     if len(names)==7:
-        cont1 = ('Effect Age', 'T', names, [0,0,0,0,0,1,0])
-        cont2 = ('Effect Gender', 'T', names, [0,0,0,0,0,0,1])
+        cont1 = ('Effect Age', 'T', ['age'], [1])
+        cont2 = ('Effect Gender', 'T', ['gender'], [1])
         contrasts = [cont1, cont2]
-    elif len(names)==8:
-        cont1 = ('Effect Age', 'T', names, [0,0,0,0,0,1,0,0])
-        cont2 = ('Effect Gender', 'T', names, [0,0,0,0,0,0,1,0])
-        cont3 = ('Effect Educational Years', 'T', names, [0,0,0,0,0,0,0,1])
+        return contrasts
+    elif len(names)>7:
+        cont1 = ('Effect Age', 'T', ['age'], [1])
+        cont2 = ('Effect Gender', 'T', ['gender'], [1])
+        cont3 = ('Effect Educational Years', 'T', ['educyears'], [1])
         contrasts = [cont1, cont2, cont3]
     return contrasts
 
 def make_contrasts_agesq(names):
-    cont1 = ('Age - Agesq', 'T', names, [0,0,0,0,0,1,-1,0])
-    cont2 = ('Agesq - Age', 'T', names, [0,0,0,0,0,-1,1,0])
-    cont3 = ('Effect Age', 'T', names, [0,0,0,0,0,1,0,0])
-    cont4 = ('Effect Agesq', 'T', names, [0,0,0,0,0,0,1,0])
+    cont1 = ('Age - Agesq', 'T', ['age','agesq'], [1,-1])
+    cont2 = ('Agesq - Age', 'T', ['age','agesq'], [-1,1])
+    cont3 = ('Effect Age', 'T', ['age'], [1])
+    cont4 = ('Effect Agesq', 'T', ['agesq'], [1])
     contF = ('Main effect Age', 'F', [cont1, cont2])
     contF2 = ('Main effect Age (omnibus)', 'F', [cont3, cont4])
     contrasts = [cont1, cont2, contF, cont3, cont4, contF2]
 
-    contrasts2 = []
-    for each in contrasts:
-        if each[1] == 'F':
-            contrasts2.append(each)
-        else:
-            e = list(each)
-            n = len(names) - len(e[-1])
-            e[-1].extend(n * [0])
-            contrasts2.append(e)
-
-    return contrasts2
+    return contrasts
 
 def make_contrasts_fullfactorial_version():
     cont1 = ('Positive effect Genotype1', 'T', ['genotype_{1}', 'genotype_{2}'], [1,-1])
@@ -172,22 +210,24 @@ def generic_version(excel_file, destdir, explicitmask, analysis_name):
     print 'Columns in the model:', names
     vectors = [data[e].tolist() for e in names]
 
-    # Defining contrasts based on model..
-    if 'justage' in analysis_name:
-        print '### Justage model identified ###'
-        contrasts = make_contrasts_justage_educyears(names)
-    elif 'educyears' in analysis_name:
-        print '### Linearage and educyears model identified ###'
-        contrasts = make_contrasts_justage_educyears(names)
-    elif 'interaction' in analysis_name:
-        print '### Interaction linearage model identified ###'
-        contrasts = make_contrasts_interaction_linearage()
-    elif 'agesq' in analysis_name:
-        print '### Agesq identified'
-        contrasts = make_contrasts_agesq(names)
-    else:
-        print '### No model type identified: using standard contrasts###'
-        contrasts = make_contrasts_original_version()
+#    # Defining contrasts based on model..
+#    if 'justage' in analysis_name:
+#        print '### Justage model identified ###'
+#        contrasts = make_contrasts_justage_educyears(names)
+#    elif 'educyears' in analysis_name:
+#        print '### Linearage and educyears model identified ###'
+#        contrasts = make_contrasts_justage_educyears(names)
+#    elif 'interaction' in analysis_name:
+#        print '### Interaction linearage model identified ###'
+#        contrasts = make_contrasts_interaction_linearage()
+#    elif 'agesq' in analysis_name:
+#        print '### Agesq identified'
+#        contrasts = make_contrasts_agesq(names)
+#    else:
+#        print '### No model type identified: using standard contrasts###'
+#        contrasts = make_contrasts_original_version()
+
+    contrasts = make_contrasts(names)
 
     a = multiple_regression_analysis(scans, vectors, names, contrasts, destdir, explicitmask, analysis_name)
     return a
