@@ -1,0 +1,29 @@
+import sys
+import nipype.interfaces.spm as spm
+import nipype.pipeline.engine as pe
+import os, json
+from glob import glob
+import os.path as osp
+
+
+wd= '/home/grg/dartel'
+
+rdwinh = glob(osp.join(wd, 'swr*_MD_t1space_wo_csf_nohdr.nii'))
+
+print rdwinh, len(rdwinh)
+ans = raw_input('Continue ?')
+
+nodes = []
+for each in rdwinh:
+    s = osp.split(each)[1].split('_')[0][3:]
+    print s
+    n = pe.Node(spm.Coregister(), name='Coreg%s'%s)
+    n.inputs.target = '/home/grg/data/templates/MNI_atlas_templates/MNI_T1.nii'
+
+    n.inputs.source = each
+    nodes.append(n)
+
+w = pe.Workflow(name='RealignMNI')
+w.base_dir = '/tmp'
+w.add_nodes(nodes)
+w.run('MultiProc', plugin_args={'n_procs' : 6})
