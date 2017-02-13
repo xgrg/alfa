@@ -24,7 +24,7 @@ def plot_stat_map2(**kwargs):
 
 
 
-def plot_stat_map(img, start, end, step=1, row_l=6, title='', threshold=None,
+def plot_stat_map(img, start, end, step=1, row_l=6, title='', bg_img=None, threshold=None,
                   axis='z', method='plot_stat_map', overlay=None, pngfile=None):
     ''' Generates a multiple row plot instead of the very large native plot,
     given the number of slices on each row, the index of the first/last slice
@@ -40,7 +40,6 @@ def plot_stat_map(img, start, end, step=1, row_l=6, title='', threshold=None,
                'colorbar':True,
                'black_bg':True,
                'display_mode':axis,
-               #'bg_img': bg_img,
                'threshold':threshold,
                'cut_coords':range(start + line * row_l * step,
                                        start + (line+1) * row_l * step,
@@ -50,6 +49,8 @@ def plot_stat_map(img, start, end, step=1, row_l=6, title='', threshold=None,
                         'view_type': 'contours'})
         elif method == 'plot_stat_map':
             opt.update({'stat_map_img': img})
+        if not bg_img is None:
+            opt.update({'bg_img': bg_img})
 
         t = getattr(plotting, method).__call__(**opt)
 
