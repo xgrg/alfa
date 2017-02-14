@@ -18,6 +18,6 @@ for each in normalized_files:
     print each
     i = aims.read(each)
     i.header().update({'referentials':[],'transformations':[]})
-    fp = osp.join(wd, '%s_nohdr.nii'%osp.splitext(each)[0])
+    fp = osp.join(wd, '%s_nohdr.nii'%osp.split(osp.splitext(each)[0])[1])
     print fp
     aims.write(i, fp)
