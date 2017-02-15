@@ -142,3 +142,66 @@ def plot_two_maps(img, overlay, start, end, row_l=6, step=1, title='',
     print 'Saving to...', pngfile
 
     out.save(pngfile)
+
+def glassbrain_allcontrasts(workflow, title, mode='uncorrected',
+    cluster_threshold=50):
+    ''' For each SPM contrast from a Nipype workflow (EstimateContrast),
+    generates a glass brain figure with the corresponding thresholded map.
+
+    `mode` can be either 'uncorrected' (p<0.001, T>3.1, F>4.69)
+                      or 'FWE' (p<0.05, T>4.54, F>8.11).
+    `title` is the title displayed on the plot.'''
+
+    n3 = workflow.get_node('estimatecontrasts')
+    analysis_wd = workflow.base_dir
+    spm_mat_file = glob(osp.join(analysis_wd, 'estimatecontrasts/SPM.mat'))[0]
+    for i in range(1, len(n3.inputs.contrasts)+1):
+        img = glob(osp.join(analysis_wd, 'estimatecontrasts/spm*_00%02d.nii'%i))[0]
+        contrast_type = osp.split(img)[-1][3]
+        print img, contrast_type
+        contrast_name = n3.inputs.contrasts[i-1][0]
+
+        thresholded_map1, threshold1 = map_threshold(img, threshold=0.001,
+            cluster_threshold=cluster_threshold)
+        if mode == 'uncorrected':
+            threshold1 = 3.106880 if contrast_type == 'T' else 4.69
+            pval_thresh = 0.001
+        elif mode == 'FWE':
+            threshold1 = 4.5429 if contrast_type == 'T' else 8.1101
+            pval_thresh = 0.05
+
+        plotting.plot_glass_brain(thresholded_map1, colorbar=True, black_bg=True,
+            display_mode='ortho', threshold=threshold1,
+            title='(%s) %s - %s>%.02f - p<%s (%s)'
+            %(title, contrast_name, contrast_type, threshold1, pval_thresh,
+            mode))
+
+def sections_allcontrasts(workflow, title, mode='uncorrected',
+    cluster_threshold=50, row_l=8, start=-32, end=34, step=2):
+    ''' For each SPM contrast from a Nipype workflow (EstimateContrast),
+    generates a figure made of slices from the corresponding thresholded map.
+
+    `mode` can be either 'uncorrected' (p<0.001, T>3.1, F>4.69)
+                      or 'FWE' (p<0.05, T>4.54, F>8.11).
+    `title` is the title displayed on the plot.'''
+
+    n3 = workflow.get_node('estimatecontrasts')
+    analysis_wd = workflow.base_dir
+    for i in range(1, len(n3.inputs.contrasts)+1):
+        img = glob(osp.join(analysis_wd, 'estimatecontrasts/spm*_00%02d.nii'%i))[0]
+        contrast_type = osp.split(img)[-1][3]
+        print img, contrast_type
+        contrast_name = n3.inputs.contrasts[i-1][0]
+        thresholded_map1, threshold1 = map_threshold(img, threshold=0.001,
+            cluster_threshold=cluster_threshold)
+        if mode == 'uncorrected':
+            threshold1 = 3.106880 if contrast_type == 'T' else 4.69
+            pval_thresh = 0.001
+        elif mode == 'FWE':
+            threshold1 = 4.5429 if contrast_type == 'T' else 8.1101
+            pval_thresh = 0.05
+
+        plot_stat_map(img, threshold=threshold1, row_l=8, start=-32, end=34,
+            step=2, title= '(%s) %s - %s>%.02f - p<%s (%s)'
+            %(title, contrast_name, contrast_type, threshold1, pval_thresh,
+            mode))
