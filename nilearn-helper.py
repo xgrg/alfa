@@ -24,8 +24,8 @@ def plot_stat_map2(**kwargs):
 
 
 
-def plot_stat_map(img, start, end, step=1, row_l=6, title='', bg_img=None, threshold=None,
-                  axis='z', method='plot_stat_map', overlay=None, pngfile=None):
+def plot_stat_map(img, start, end, step=1, row_l=6, title='', bg_img=None,
+    threshold=None, axis='z', method='plot_stat_map', overlay=None, pngfile=None):
     ''' Generates a multiple row plot instead of the very large native plot,
     given the number of slices on each row, the index of the first/last slice
     and the increment.
@@ -84,13 +84,15 @@ def plot_stat_map(img, start, end, step=1, row_l=6, title='', bg_img=None, thres
     out.save(pngfile)
 
 
-def plot_two_maps(img, overlay, start, end, row_l=6, step=1, title='', threshold=None,
-                  axis='z', method='plot_stat_map', pngfile=None):
-    ''' Similar to plot_stat_map, generates a multiple row plot instead of the very
-    large native plot, given the number of slices on each row, the index of the first/last slice
-    and the increment.
+def plot_two_maps(img, overlay, start, end, row_l=6, step=1, title='',
+    threshold=None, axis='z', method='plot_stat_map', pngfile=None):
+    ''' Similar to plot_stat_map, generates a multiple row plot instead of the
+    very large native plot, given the number of slices on each row, the index of
+    the first/last slice and the increment.
 
-    This function is used to compare two maps (segmentation, statistical clusters, ...).'''
+    This function is used to compare two maps (segmentation, statistical
+    clusters, ...).'''
+
     slice_nb = int(abs(((end - start) / float(step))))
     images = []
     for line in range(int(slice_nb/float(row_l) + 1)):
