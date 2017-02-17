@@ -43,5 +43,7 @@
 * **ROIvent**: periventricular ROIs obtained in both T1 and DWI spaces
     after dilating ventricular segmentations
 * **ROIapoE**: ROIs defined manually from significant clusters found in prior SPM
-    analyses - also contains a folder with ROI values extracted from MD maps over
-    the whole cohort
+    analyses - also contains folders with ROI values extracted from MD maps over
+    the whole cohort (using resp. original MD maps, MD maps with CSF voxels
+      removed (`p(csf)!=0` and `p(csf)>0.5`)
+
