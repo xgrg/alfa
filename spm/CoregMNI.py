@@ -7,9 +7,9 @@ import os.path as osp
 
 
 wd= '/home/grg/dartel'
+od = '/tmp/t1_dartel/'
 
 rdwinh = glob(osp.join(wd, 'swr*_MD_t1space_wo_csf_nohdr.nii'))
-
 print rdwinh, len(rdwinh)
 ans = raw_input('Continue ?')
 
@@ -24,6 +24,6 @@ for each in rdwinh:
     nodes.append(n)
 
 w = pe.Workflow(name='RealignMNI')
-w.base_dir = '/tmp'
+w.base_dir = od
 w.add_nodes(nodes)
 w.run('MultiProc', plugin_args={'n_procs' : 6})

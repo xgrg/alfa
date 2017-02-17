@@ -10,13 +10,14 @@ dwi = []
 t1 = []
 rt1 = []
 
-wd= '/home/grg/dartel'
+wd= '/tmp/t1_dartel'
+od = '/tmp/t1_dartel'
 
 subjects2 = []
 for s in subjects:
     print s
     try:
-        dwifp = glob(osp.join('/tmp/dartel5', '%s*_MD_t1space_wo_csf.nii'%s))[0]
+        dwifp = glob(osp.join('/home/grg/spm/dartel/T1', '%s*_mabonlm_nobias.nii'%s))[0]
         rt1fp = glob(osp.join(wd, 'r%s_mabonlm_nobias_spm_c1.nii'%s))[0]
         t1fp = glob(osp.join(wd, '%s_mabonlm_nobias_spm_c1.nii'%s))[0]
         dwi.append(dwifp)
@@ -39,7 +40,7 @@ for i, s in enumerate(subjects):
     n.inputs.apply_to_files = dwi[i]
     nodes.append(n)
 
-w = pe.Workflow(name='RealignDWIonT1')
-w.base_dir = '/tmp/dartel'
+w = pe.Workflow(name='RealignT1onC1')
+w.base_dir = od
 w.add_nodes(nodes)
 w.run('MultiProc', plugin_args={'n_procs' : 6})
