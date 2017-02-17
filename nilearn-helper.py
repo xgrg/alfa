@@ -11,6 +11,10 @@ import nibabel as nib
 import numpy as np
 from PIL import Image
 import io
+import sys
+import pandas as pd
+sys.path.append('/home/grg/git/alfa/')
+import multireg_spm12 as mreg
 
 def plot_stat_map2(**kwargs):
     cut_coords = kwargs['cut_coords']
@@ -143,6 +147,7 @@ def plot_two_maps(img, overlay, start, end, row_l=6, step=1, title='',
 
     out.save(pngfile)
 
+
 def glassbrain_allcontrasts(workflow, title, mode='uncorrected',
     cluster_threshold=50):
     ''' For each SPM contrast from a Nipype workflow (EstimateContrast),
@@ -175,6 +180,7 @@ def glassbrain_allcontrasts(workflow, title, mode='uncorrected',
             title='(%s) %s - %s>%.02f - p<%s (%s)'
             %(title, contrast_name, contrast_type, threshold1, pval_thresh,
             mode))
+
 
 def sections_allcontrasts(workflow, title, mode='uncorrected',
     cluster_threshold=50, row_l=8, start=-32, end=34, step=2):
