@@ -15,7 +15,9 @@ import gzip, pickle
 import sys
 import pandas as pd
 sys.path.append('/home/grg/git/alfa/')
+sys.path.append('/home/grg/git/pyAAL/')
 import multireg_spm12 as mreg
+import pyAAL
 
 def plot_stat_map2(**kwargs):
     cut_coords = kwargs['cut_coords']
