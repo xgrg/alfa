@@ -89,6 +89,7 @@ def plot_stat_map(img, start, end, step=1, row_l=6, title='', bg_img=None,
     print 'Saving to...', pngfile
 
     out.save(pngfile)
+    return pngfile
 
 
 def plot_two_maps(img, overlay, start, end, row_l=6, step=1, title='',
@@ -202,7 +203,8 @@ def sections_allcontrasts(path, title, mode='uncorrected',
         for e in ['modeldesign', 'estimatemodel','estimatecontrasts']]
     _, _, node = nodes
 
-    for i in range(1, len(node.inputs.contrasts)+1):
+    def _thiscontrast(i, node=node, cluster_threshold=cluster_threshold, mode=mode,
+            title=title, row_l=row_l, start=start, end=end, step=step):
         img = glob(osp.join(node.output_dir(), 'spm*_00%02d.nii'%i))[0]
         contrast_type = osp.split(img)[-1][3]
         print img, contrast_type
@@ -216,7 +218,14 @@ def sections_allcontrasts(path, title, mode='uncorrected',
             threshold1 = 4.5429 if contrast_type == 'T' else 8.1101
             pval_thresh = 0.05
 
-        plot_stat_map(img, threshold=threshold1, row_l=8, start=-32, end=34,
-            step=2, title= '(%s) %s - %s>%.02f - p<%s (%s)'
+        pngfile = plot_stat_map(img, threshold=threshold1, row_l=row_l,
+            start=start, end=end, step=step, title= '(%s) %s - %s>%.02f - p<%s (%s)'
             %(title, contrast_name, contrast_type, threshold1, pval_thresh,
             mode))
+        return pngfile
+
+    sections = []
+    for i in range(1, len(node.inputs.contrasts)+1):
+        pngfile = _thiscontrast(i)
+        sections.append((node.inputs.contrasts[i-1][0], pngfile))
+    return sections
