@@ -6,16 +6,16 @@ from glob import glob
 import os.path as osp
 
 
-wd= '/home/grg/dartel'
+wd= '/tmp/t1_dartel'
 od = '/tmp/t1_dartel/'
 
-rdwinh = glob(osp.join(wd, 'swr*_MD_t1space_wo_csf_nohdr.nii'))
+rdwinh = glob(osp.join(wd, 'wr*_nohdr.nii'))
 print rdwinh, len(rdwinh)
 ans = raw_input('Continue ?')
 
 nodes = []
 for each in rdwinh:
-    s = osp.split(each)[1].split('_')[0][3:]
+    s = osp.split(each)[1].split('_')[0][2:]
     print s
     n = pe.Node(spm.Coregister(), name='Coreg%s'%s)
     n.inputs.target = '/home/grg/data/templates/MNI_atlas_templates/MNI_T1.nii'

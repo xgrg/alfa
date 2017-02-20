@@ -6,9 +6,9 @@ from glob import glob
 import os.path as osp
 from soma import aims
 
-wd = '/tmp/dartel/'
+wd = '/tmp/t1_dartel/'
 
-normalized_files = glob(osp.join(wd, 'DARTELNorm2MNI/Norm2MNI' , 'swr*csf.nii'))
+normalized_files = glob(osp.join(wd, 'DARTELNorm2MNI/Norm2MNI' , 'wr*.nii'))
 
 print normalized_files, len(normalized_files)
 

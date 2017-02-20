@@ -47,3 +47,8 @@
     the whole cohort (using resp. original MD maps, MD maps with CSF voxels
       removed (`p(csf)!=0` and `p(csf)>0.5`)
 
+###Addendum:
+
+**/home/grg/dartel_csf0**:
+
+**/home/grg/dartel_csf.5**:

@@ -319,10 +319,14 @@ if __name__ == '__main__':
 
     parser.add_argument("excel", type=str, help='Excel file containing the model data')
     parser.add_argument("destdir", type=str, help='Destination directory')
-    parser.add_argument("--mask", type=str, help='Explicit mask used in the analysis', required=False, default='/home/grg/spm/MNI_T1_brain_mask.nii')
-    parser.add_argument("--design", type=str, help='Design (0: Multiple Regression - 1: Full Factorial)', required=False, default=0)
-
-    parser.add_argument("-v", dest='verbose', action='store_true', required=False, default=True)
+    parser.add_argument("--mask", type=str, help='Explicit mask used in the analysis',
+        required=False,
+        default='/home/grg/spm/MNI_T1_brain_wo_csf.nii')
+    parser.add_argument("--design", type=str,
+        help='Design (0: Multiple Regression - 1: Full Factorial)',
+        required=False, default=0)
+    parser.add_argument("-v", dest='verbose', action='store_true',
+        required=False, default=True)
     args = parser.parse_args()
 
     excel = args.excel
