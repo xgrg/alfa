@@ -143,12 +143,12 @@ def plot_two_maps(img, overlay, start, end, row_l=6, step=1, title='',
     if pngfile is None:
         import tempfile
         pngfile = tempfile.mkstemp(suffix='.png')[1]
-    print 'Saving to...', pngfile
+    print 'Saving to...', pngfile, '(%s)'%title
 
     out.save(pngfile)
 
 
-def glassbrain_allcontrasts(workflow, title, mode='uncorrected',
+def glassbrain_allcontrasts(node, title, mode='uncorrected',
     cluster_threshold=50):
     ''' For each SPM contrast from a Nipype workflow (EstimateContrast),
     generates a glass brain figure with the corresponding thresholded map.
@@ -157,14 +157,12 @@ def glassbrain_allcontrasts(workflow, title, mode='uncorrected',
                       or 'FWE' (p<0.05, T>4.54, F>8.11).
     `title` is the title displayed on the plot.'''
 
-    n3 = workflow.get_node('estimatecontrasts')
-    analysis_wd = workflow.base_dir
-    spm_mat_file = glob(osp.join(analysis_wd, 'estimatecontrasts/SPM.mat'))[0]
-    for i in range(1, len(n3.inputs.contrasts)+1):
-        img = glob(osp.join(analysis_wd, 'estimatecontrasts/spm*_00%02d.nii'%i))[0]
+    spm_mat_file = osp.join(node.output_dir(), 'SPM.mat')
+    for i in range(1, len(node.inputs.contrasts)+1):
+        img = glob(osp.join(node.output_dir(), 'spm*_00%02d.nii'%i))[0]
         contrast_type = osp.split(img)[-1][3]
         print img, contrast_type
-        contrast_name = n3.inputs.contrasts[i-1][0]
+        contrast_name = node.inputs.contrasts[i-1][0]
 
         thresholded_map1, threshold1 = map_threshold(img, threshold=0.001,
             cluster_threshold=cluster_threshold)
@@ -182,7 +180,7 @@ def glassbrain_allcontrasts(workflow, title, mode='uncorrected',
             mode))
 
 
-def sections_allcontrasts(workflow, title, mode='uncorrected',
+def sections_allcontrasts(node, title, mode='uncorrected',
     cluster_threshold=50, row_l=8, start=-32, end=34, step=2):
     ''' For each SPM contrast from a Nipype workflow (EstimateContrast),
     generates a figure made of slices from the corresponding thresholded map.
@@ -191,13 +189,11 @@ def sections_allcontrasts(workflow, title, mode='uncorrected',
                       or 'FWE' (p<0.05, T>4.54, F>8.11).
     `title` is the title displayed on the plot.'''
 
-    n3 = workflow.get_node('estimatecontrasts')
-    analysis_wd = workflow.base_dir
-    for i in range(1, len(n3.inputs.contrasts)+1):
-        img = glob(osp.join(analysis_wd, 'estimatecontrasts/spm*_00%02d.nii'%i))[0]
+    for i in range(1, len(node.inputs.contrasts)+1):
+        img = glob(osp.join(node.output_dir(), 'spm*_00%02d.nii'%i))[0]
         contrast_type = osp.split(img)[-1][3]
         print img, contrast_type
-        contrast_name = n3.inputs.contrasts[i-1][0]
+        contrast_name = node.inputs.contrasts[i-1][0]
         thresholded_map1, threshold1 = map_threshold(img, threshold=0.001,
             cluster_threshold=cluster_threshold)
         if mode == 'uncorrected':
