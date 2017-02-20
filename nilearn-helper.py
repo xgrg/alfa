@@ -189,8 +189,8 @@ def glassbrain_allcontrasts(path, title, mode='uncorrected',
             mode))
 
 
-def sections_allcontrasts(path, title, mode='uncorrected',
-    cluster_threshold=50, row_l=8, start=-32, end=34, step=2):
+def sections_allcontrasts(path, title, contrasts='all', mode='uncorrected',
+    axis='z', cluster_threshold=50, row_l=8, start=-32, end=34, step=2):
     ''' For each SPM contrast from a Nipype workflow (`path` points to the base
     directory), generates a figure made of slices from the corresponding
     thresholded map.
@@ -204,7 +204,7 @@ def sections_allcontrasts(path, title, mode='uncorrected',
     _, _, node = nodes
 
     def _thiscontrast(i, node=node, cluster_threshold=cluster_threshold, mode=mode,
-            title=title, row_l=row_l, start=start, end=end, step=step):
+            title=title, axis=axis, row_l=row_l, start=start, end=end, step=step):
         img = glob(osp.join(node.output_dir(), 'spm*_00%02d.nii'%i))[0]
         contrast_type = osp.split(img)[-1][3]
         print img, contrast_type
@@ -218,7 +218,7 @@ def sections_allcontrasts(path, title, mode='uncorrected',
             threshold1 = 4.5429 if contrast_type == 'T' else 8.1101
             pval_thresh = 0.05
 
-        pngfile = plot_stat_map(img, threshold=threshold1, row_l=row_l,
+        pngfile = plot_stat_map(img, threshold=threshold1, row_l=row_l, axis=axis,
             start=start, end=end, step=step, title= '(%s) %s - %s>%.02f - p<%s (%s)'
             %(title, contrast_name, contrast_type, threshold1, pval_thresh,
             mode))
@@ -226,6 +226,7 @@ def sections_allcontrasts(path, title, mode='uncorrected',
 
     sections = []
     for i in range(1, len(node.inputs.contrasts)+1):
-        pngfile = _thiscontrast(i)
-        sections.append((node.inputs.contrasts[i-1][0], pngfile))
+        if contrasts == 'all' or i in contrasts:
+            pngfile = _thiscontrast(i)
+            sections.append((node.inputs.contrasts[i-1][0], pngfile))
     return sections
