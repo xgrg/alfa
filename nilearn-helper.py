@@ -11,6 +11,7 @@ import nibabel as nib
 import numpy as np
 from PIL import Image
 import io
+import gzip, pickle
 import sys
 import pandas as pd
 sys.path.append('/home/grg/git/alfa/')
@@ -148,14 +149,19 @@ def plot_two_maps(img, overlay, start, end, row_l=6, step=1, title='',
     out.save(pngfile)
 
 
-def glassbrain_allcontrasts(node, title, mode='uncorrected',
+def glassbrain_allcontrasts(path, title, mode='uncorrected',
     cluster_threshold=50):
-    ''' For each SPM contrast from a Nipype workflow (EstimateContrast),
-    generates a glass brain figure with the corresponding thresholded map.
+    ''' For each SPM contrast from a Nipype workflow (`path` points to the base
+    directory), generates a glass brain figure with the corresponding
+    thresholded map.
 
     `mode` can be either 'uncorrected' (p<0.001, T>3.1, F>4.69)
                       or 'FWE' (p<0.05, T>4.54, F>8.11).
     `title` is the title displayed on the plot.'''
+
+    nodes = [pickle.load(gzip.open(osp.join(path, e, '_node.pklz'), 'rb'))
+        for e in ['modeldesign', 'estimatemodel','estimatecontrasts']]
+    _, _, node = nodes
 
     spm_mat_file = osp.join(node.output_dir(), 'SPM.mat')
     for i in range(1, len(node.inputs.contrasts)+1):
@@ -180,14 +186,19 @@ def glassbrain_allcontrasts(node, title, mode='uncorrected',
             mode))
 
 
-def sections_allcontrasts(node, title, mode='uncorrected',
+def sections_allcontrasts(path, title, mode='uncorrected',
     cluster_threshold=50, row_l=8, start=-32, end=34, step=2):
-    ''' For each SPM contrast from a Nipype workflow (EstimateContrast),
-    generates a figure made of slices from the corresponding thresholded map.
+    ''' For each SPM contrast from a Nipype workflow (`path` points to the base
+    directory), generates a figure made of slices from the corresponding
+    thresholded map.
 
     `mode` can be either 'uncorrected' (p<0.001, T>3.1, F>4.69)
                       or 'FWE' (p<0.05, T>4.54, F>8.11).
     `title` is the title displayed on the plot.'''
+
+    nodes = [pickle.load(gzip.open(osp.join(path, e, '_node.pklz'), 'rb'))
+        for e in ['modeldesign', 'estimatemodel','estimatecontrasts']]
+    _, _, node = nodes
 
     for i in range(1, len(node.inputs.contrasts)+1):
         img = glob(osp.join(node.output_dir(), 'spm*_00%02d.nii'%i))[0]
