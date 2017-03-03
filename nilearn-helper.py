@@ -13,6 +13,7 @@ from PIL import Image
 import io
 import gzip, pickle
 import sys
+import string, json
 import pandas as pd
 sys.path.append('/home/grg/git/alfa/')
 sys.path.append('/home/grg/git/pyAAL/')
