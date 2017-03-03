@@ -121,7 +121,9 @@ def multiple_regression_analysis(scans, vectors, names, contrasts, destdir, expl
 
     model = MultipleRegressionDesign(in_files = scans,
                                     user_covariates = covariates,
-                                    explicit_mask_file = explicitmask)
+                                    explicit_mask_file = explicitmask,
+                                    use_implicit_threshold = True
+                                    )
 
     # Model Estimation
     est = spm.EstimateModel(estimation_method = {'Classical': 1})
@@ -143,6 +145,7 @@ def multiple_regression_analysis(scans, vectors, names, contrasts, destdir, expl
                         ('beta_images', 'beta_images'),
                         ('residual_image', 'residual_image')]), ])
     a.config['execution']['stop_on_first_rerun'] = True
+    a.config['execution']['remove_unnecessary_outputs'] = False
     return a
 
 
