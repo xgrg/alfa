@@ -91,7 +91,7 @@ def make_contrasts(names):
 
     for k, v in cov.items():
         if k in names:
-            print 'Main effect of %s'%v
+            print 'Effect of %s'%v
             c = ('Effect %s'%v, 'T', [k], [1])
             contrasts.append(c)
 
