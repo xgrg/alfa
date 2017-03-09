@@ -169,7 +169,8 @@ def glassbrain_allcontrasts(path, title, mode='uncorrected',
 
     spm_mat_file = osp.join(node.output_dir(), 'SPM.mat')
     for i in range(1, len(node.inputs.contrasts)+1):
-        img = glob(osp.join(node.output_dir(), 'spm*_00%02d.nii'%i))[0]
+        output_dir = osp.join(node.config['execution']['crashdump_dir'], node._hierarchy, node._id)
+        img = glob(osp.join(output_dir, 'spm*_00%02d.nii'%i))[0]
         contrast_type = osp.split(img)[-1][3]
         print img, contrast_type
         contrast_name = node.inputs.contrasts[i-1][0]
@@ -206,7 +207,8 @@ def sections_allcontrasts(path, title, contrasts='all', mode='uncorrected',
 
     def _thiscontrast(i, node=node, cluster_threshold=cluster_threshold, mode=mode,
             title=title, axis=axis, row_l=row_l, start=start, end=end, step=step):
-        img = glob(osp.join(node.output_dir(), 'spm*_00%02d.nii'%i))[0]
+        output_dir = osp.join(node.config['execution']['crashdump_dir'], node._hierarchy, node._id)
+        img = glob(osp.join(output_dir, 'spm*_00%02d.nii'%i))[0]
         contrast_type = osp.split(img)[-1][3]
         print img, contrast_type
         contrast_name = node.inputs.contrasts[i-1][0]
@@ -227,7 +229,8 @@ def sections_allcontrasts(path, title, contrasts='all', mode='uncorrected',
 
     sections = []
     for i in range(1, len(node.inputs.contrasts)+1):
-        if contrasts == 'all' or i in contrasts:
+
+        if contrasts == 'all' or i in list(contrasts) or contrasts in node.inputs.contrasts[i-1][0]:
             pngfile = _thiscontrast(i)
             sections.append((node.inputs.contrasts[i-1][0], pngfile))
     return sections
