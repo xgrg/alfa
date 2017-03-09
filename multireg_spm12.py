@@ -48,8 +48,8 @@ def make_contrasts(names):
         cont11 = ('HO>HT', 'T', ['Apoe2-4', 'Apoe3-4', 'Apoe4-4'], [-1, -1, 2])
         cont12 = ('HO<NC', 'T', ['Apoe2-3', 'Apoe3-3', 'Apoe4-4'], [1, 1, -2])
         cont13 = ('HO>NC', 'T', ['Apoe2-3', 'Apoe3-3', 'Apoe4-4'], [-1, -1, 2])
-        cont14 = ('HT<NC', 'T', ['Apoe2-3', 'Apoe3-3', 'Apoe3-4'], [1, 1, -2])
-        cont15 = ('HT>NC', 'T', ['Apoe2-3', 'Apoe3-3', 'Apoe3-4'], [-1, -1, 2])
+        cont14 = ('HT<NC', 'T', ['Apoe2-3', 'Apoe2-4', 'Apoe3-3', 'Apoe3-4'], [1, -1, 1, -1])
+        cont15 = ('HT>NC', 'T', ['Apoe2-3', 'Apoe2-4', 'Apoe3-3', 'Apoe3-4'], [-1, 1, -1, 1])
         cont16 = ('Dose-dependent effect', 'T', ['Apoe3-3', 'Apoe3-4', 'Apoe4-4'], [-1, 0, 1])
 
         contrasts.extend([cont1, cont2, cont3, cont4, cont5, cont6, cont7, cont8, cont9, cont10, cont11, cont12, cont13, cont14, cont15, cont16])
@@ -66,23 +66,29 @@ def make_contrasts(names):
         cont23 = ('C>NC_Age_Linear', 'T', ['age23', 'age24', 'age33', 'age34', 'age44'], [-3, 2, -3, 2, 2])
         cont24 = ('HO<All_Age_Linear', 'T', ['age23', 'age24', 'age33', 'age34', 'age44'], [1, 1, 1, 1, -4])
         cont25 = ('HO>All_Age_Linear', 'T', ['age23', 'age24', 'age33', 'age34', 'age44'], [-1, -1, -1, -1, 4])
+        cont26 = ('HO<HT_Age_Linear', 'T', ['age24', 'age34', 'age44'], [1, 1, -2])
+        cont27 = ('HO>HT_Age_Linear', 'T', ['age24', 'age34', 'age44'], [-1, -1, 2])
+        cont28 = ('HO<NC_Age_Linear', 'T', ['age23', 'age33', 'age44'], [1, 1, -2])
+        cont29 = ('HO>NC_Age_Linear', 'T', ['age23', 'age33', 'age44'], [-1, -1, 2])
+        cont30 = ('HT<NC_Age_Linear', 'T', ['age23', 'age24', 'age33', 'age34'], [1, -1, 1, -1])
+        cont31 = ('HT>NC_Age_Linear', 'T', ['age23', 'age24', 'age33', 'age34'], [-1, 1, -1, 1])
 
-        contrasts.extend([cont17, cont18, cont19, cont20, cont21, cont22, cont23, cont24, cont25])
+        contrasts.extend([cont17, cont18, cont19, cont20, cont21, cont22, cont23, cont24, cont25, cont26, cont27, cont28, cont29, cont30, cont31])
 
     if 'agesq23' in names:
         print 'Interaction quadratic age-genotype detected'
 
-        cont26 = ('agesq23>agesq24', 'T', ['agesq23', 'agesq24'], [1,-1])
-        cont27 = ('agesq24>agesq33', 'T', ['agesq24', 'agesq33'], [1,-1])
-        cont28 = ('agesq33>agesq34', 'T', ['agesq33', 'agesq34'], [1,-1])
-        cont29 = ('agesq34>agesq44', 'T', ['agesq34', 'agesq44'], [1,-1])
-        cont30 = ('Interaction Age square-genotype', 'F', [cont19, cont20, cont21, cont22])
-        cont31 = ('C<NC_Age_Square', 'T', ['agesq23', 'agesq24', 'agesq33', 'agesq34', 'agesq44'], [3, -2, 3, -2, -2])
-        cont32 = ('C>NC_Age_Square', 'T', ['agesq23', 'agesq24', 'agesq33', 'agesq34', 'agesq44'], [-3, 2, -3, 2, 2])
-        cont33 = ('HO<All_Age_Square', 'T', ['agesq23', 'agesq24', 'agesq33', 'agesq34', 'agesq44'], [1, 1, 1, 1, -4])
-        cont34 = ('HO>All_Age_Square', 'T', ['agesq23', 'agesq24', 'agesq33', 'agesq34', 'agesq44'], [-1, -1, -1, -1, 4])
+        cont32 = ('agesq23>agesq24', 'T', ['agesq23', 'agesq24'], [1,-1])
+        cont33 = ('agesq24>agesq33', 'T', ['agesq24', 'agesq33'], [1,-1])
+        cont34 = ('agesq33>agesq34', 'T', ['agesq33', 'agesq34'], [1,-1])
+        cont35 = ('agesq34>agesq44', 'T', ['agesq34', 'agesq44'], [1,-1])
+        cont36 = ('Interaction Age square-genotype', 'F', [cont19, cont20, cont21, cont22])
+        cont37 = ('C<NC_Age_Square', 'T', ['agesq23', 'agesq24', 'agesq33', 'agesq34', 'agesq44'], [3, -2, 3, -2, -2])
+        cont38 = ('C>NC_Age_Square', 'T', ['agesq23', 'agesq24', 'agesq33', 'agesq34', 'agesq44'], [-3, 2, -3, 2, 2])
+        cont39 = ('HO<All_Age_Square', 'T', ['agesq23', 'agesq24', 'agesq33', 'agesq34', 'agesq44'], [1, 1, 1, 1, -4])
+        cont40 = ('HO>All_Age_Square', 'T', ['agesq23', 'agesq24', 'agesq33', 'agesq34', 'agesq44'], [-1, -1, -1, -1, 4])
 
-        contrasts.extend([cont26, cont27, cont28, cont29, cont30, cont31, cont32, cont33, cont34])
+        contrasts.extend([cont32, cont33, cont34, cont35, cont36, cont37, cont38, cont39, cont40])
 
     cov = {'age': 'Linear age',
             'agesq': 'Age square',
