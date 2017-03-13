@@ -25,10 +25,10 @@
   > *- comparing models (linear vs quadratic etc)*
   >
   > ***DARTEL***
-  > *- exploring results using DARTEL-normalized DWI maps
+  > *- exploring results using DARTEL-normalized DWI maps*
 
 **ROI analyses**
-*- plotting work on ROI values extracted from various sets of images
+*- plotting work on ROI values extracted from various sets of images*
 
 **Tools**
 *- testing various tools using notebooks*
@@ -38,4 +38,4 @@
 registration errors in this region*
 
 **Python for science BBRC**
-*- a few notebooks prepared for the introductory course at BarcelonaBeta
+*- a few notebooks prepared for the introductory course at BarcelonaBeta*
