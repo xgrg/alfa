@@ -99,6 +99,15 @@ def make_contrasts(names):
 
         contrasts.extend([cont41, cont42, cont43])
 
+    if 'ageNC' in names and 'ageHT' in names and 'ageHO' in names:
+        print 'Interaction with age Non-carriers / Heterozygotes / Homozygotes detected'
+
+        cont44 = ('HO>HT_Age_Linear', 'T', ['ageHO', 'ageHT'], [1,-1])
+        cont45 = ('HO>NC_Age_Linear', 'T', ['ageHO', 'ageNC'], [1,-1])
+        cont46 = ('HT>NC_Age_Linear', 'T', ['ageHT', 'ageNC'], [1,-1])
+
+        contrasts.extend([cont44, cont45, cont46])
+
 
     cov = {'age': 'Linear age',
             'agesq': 'Age square',
