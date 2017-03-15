@@ -83,13 +83,16 @@ def get_groups(dataset, groups_names):
                  'NC': [0,2],
                  'HO': [4],
                  'HT': [1,3],
-                 'All':[0,1,2,3]}
+                 'All':[0,1,2,3],
+                 'apoe44': [4],
+                 'apoe34': [3],
+                 'apoe33': [2],
+                 'apoe24': [1],
+                 'apoe23': [0]}
     for name in groups_names:
         for k,v in groups_ht.items():
             if name == k:
                 groups.append(pd.concat([groups1[i] for i in v]))
-    if len(groups) == 0:
-        return groups1
     return groups
 
 
