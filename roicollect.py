@@ -23,7 +23,8 @@ def getdict(data, key, column, column2=None, value=None):
 def collect_roivalues(roilabel, csvfiles, subjects, verbose=False):
     ''' This simply collects the values from *_stats.csv files and returns a
     DataFrame with these ROI values, given a specific `roilabel`.
-    `src` is the folder containing the csv files.
+    `subjects` is the list of subjects associated to these files (required in
+    order to join information at a later step).
     '''
     data = []
     subj = []
@@ -48,6 +49,7 @@ def collect_roivalues(roilabel, csvfiles, subjects, verbose=False):
     return pd.DataFrame(data, index=subj, columns=['roi'])
 
 def correct(df):
+    ''' Applies a correction for covariates to a given DataFrame'''
 
     model = 'roi ~ 1 + C(apo) + gender + educyears + ventricles'
     print 'Model used for correction:', model
@@ -69,10 +71,10 @@ def set_figaxes(df, ylim=None):
     plt.xlim([df['age'].min(), df['age'].max()])
 
 
-def get_groups(dataset, groups_names=[]):
+def get_groups(dataset, groups_names):
+    '''Splits a dataset according to genotypic groups. Returns a list of
+    DataFrames plus a list of group names.'''
     # take each group separately
-    if len(groups_names) == 0:
-        groups_names = ['apoe44', 'apoe34', 'apoe24', 'apoe33', 'apoe23']
     groups1 = []
     for i in xrange(5):
         groups1.append(dataset[dataset['apo'] == i])
@@ -87,12 +89,11 @@ def get_groups(dataset, groups_names=[]):
             if name == k:
                 groups.append(pd.concat([groups1[i] for i in v]))
     if len(groups) == 0:
-        return groups1, groups_names
-    return groups, groups_names
+        return groups1
+    return groups
 
 
-def plot_region(dataset, roi_name, groups, order=1,
-        ax=None, ylim=[0.0005, 0.0010]):
+def plot_region(dataset, roi_name, groups=None, order=1, ax=None, ylim=[0.0005, 0.0010]):
 
     if ax == None:
         fig = plt.figure(figsize=(6, 6))
@@ -112,7 +113,10 @@ def plot_region(dataset, roi_name, groups, order=1,
     print 'Region:', roi_name, '- Fitting order:', order, '- Formula:', formulas[order-1]
 
     # Splits the dataset into genotypic groups
-    groups_sub, groups = get_groups(dataset, groups_names = groups)
+    if groups is None:
+        print 'WARNING: using the 5 genotypic groups'
+        groups = ['apoe44', 'apoe34', 'apoe24', 'apoe33', 'apoe23']
+    groups_sub = get_groups(dataset, groups_names = groups)
 
     for i, df in enumerate(groups_sub):
         # Plots the group cloud
