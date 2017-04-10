@@ -230,9 +230,9 @@ def sections_allcontrasts(path, title, contrasts='all', mode='uncorrected',
 
     sections = []
     for i in range(1, len(node.inputs.contrasts)+1):
-        if (isinstance(contrasts, list) and
-            (i in list(contrasts) or contrasts in node.inputs.contrasts[i-1][0]))\
-            or (isinstance(contrasts, str) and contrasts == 'all'):
+        if (isinstance(contrasts, list) and i in list(contrasts))\
+            or (isinstance(contrasts, str) and (contrasts == 'all'\
+            or contrasts in node.inputs.contrasts[i-1][0])):
                 pngfile = _thiscontrast(i)
                 sections.append((node.inputs.contrasts[i-1][0], pngfile))
     return sections

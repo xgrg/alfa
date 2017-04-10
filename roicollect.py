@@ -183,7 +183,8 @@ def plot_regions(data, labels, csvfiles, subjects, names=None, groups=None,
 
             # Fetch values for the given ROI and correct them for covariates
             roivalues = collect_roivalues(roi_label, csvfiles=csvfiles, subjects=subjects)
-            df = data.join(roivalues)
+            df = data.join(roivalues).dropna()
+
             print 'Standard deviation of label %s:'%roi_name,\
                         np.std(df['roi'])
             if do_correct:
