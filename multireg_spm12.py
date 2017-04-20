@@ -300,6 +300,7 @@ if __name__ == '__main__':
     print 'Excel file:', excel
     print 'mask file:', mask
     print 'destination directory:', destdir
+    assert(osp.isfile(mask))
 
     if design==1:
         print 'Full Factorial Design'
