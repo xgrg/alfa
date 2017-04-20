@@ -1,23 +1,32 @@
-import sys
-import nipype.interfaces.spm as spm
-import nipype.pipeline.engine as pe
-import os, json
-from glob import glob
+#!/usr/bin/env python
+#coding: utf-8
+
+import os
 import os.path as osp
 from soma import aims
+import argparse
 
-wd = '/tmp/t1_dartel/'
 
-normalized_files = glob(osp.join(wd, 'DARTELNorm2MNI/Norm2MNI' , 'wr*.nii'))
-
-print normalized_files, len(normalized_files)
-
-ans = raw_input('Continue ?')
-
-for each in normalized_files:
-    print each
-    i = aims.read(each)
-    i.header().update({'referentials':[],'transformations':[]})
-    fp = osp.join(wd, '%s_nohdr.nii'%osp.split(osp.splitext(each)[0])[1])
+def remove_ref_from_headers(fp):
     print fp
-    aims.write(i, fp)
+    i = aims.read(fp)
+    i.header().update({'referentials':[],'transformations':[]})
+    s = osp.basename(fp).split('.')
+    basename, ext = s[0], '.'.join(s[1:])
+    fp2 = osp.join(osp.dirname(fp), '%s_nohdr.%s'%(basename, ext))
+    print 'writing', fp2
+    aims.write(i, fp2)
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='`remove_headers.py` is used '\
+        'to remove referentials and transformations from the headers of a series'\
+        'of files.')
+    parser.add_argument('files', nargs='+', help='Files to clean the headers of')
+    opts = parser.parse_args()
+
+    print opts.files
+    print len(opts.files)
+
+    ans = raw_input('Continue ?')
+    for each in opts.files:
+        remove_ref_from_headers(each)
