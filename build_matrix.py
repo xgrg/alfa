@@ -28,6 +28,8 @@ def build_matrix(images, covlist, covtable, subjects=None):
 
     data = []
     for im, s in zip(images, subjects):
+        if not str(s) in im:
+            print s, 'not in', im, 'you should check your data.'
         row = [im]
         for e in covlist:
             row.append(covtable[covtable['subject']==s][e].values[0])
