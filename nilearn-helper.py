@@ -13,6 +13,7 @@ from PIL import Image
 import io
 import gzip, pickle
 import sys
+from matplotlib import cm
 import string, json
 import pandas as pd
 sys.path.append('/home/grg/git/alfa/')
@@ -33,7 +34,8 @@ def plot_stat_map2(**kwargs):
 
 
 def plot_stat_map(img, start, end, step=1, row_l=6, title='', bg_img=None,
-    threshold=None, axis='z', method='plot_stat_map', overlay=None, pngfile=None):
+    threshold=None, axis='z', method='plot_stat_map', overlay=None,
+    pngfile=None, cmap=None):
     ''' Generates a multiple row plot instead of the very large native plot,
     given the number of slices on each row, the index of the first/last slice
     and the increment.
@@ -59,6 +61,8 @@ def plot_stat_map(img, start, end, step=1, row_l=6, title='', bg_img=None,
             opt.update({'stat_map_img': img})
         if not bg_img is None:
             opt.update({'bg_img': bg_img})
+        if not cmap is None:
+            opt.update({'cmap': getattr(cm, cmap)})
 
         t = getattr(plotting, method).__call__(**opt)
 
@@ -94,7 +98,8 @@ def plot_stat_map(img, start, end, step=1, row_l=6, title='', bg_img=None,
 
 
 def plot_two_maps(img, overlay, start, end, row_l=6, step=1, title='',
-    threshold=None, axis='z', method='plot_stat_map', pngfile=None):
+    threshold=None, axis='z', method='plot_stat_map', pngfile=None,
+    cmap=None):
     ''' Similar to plot_stat_map, generates a multiple row plot instead of the
     very large native plot, given the number of slices on each row, the index of
     the first/last slice and the increment.
@@ -107,11 +112,10 @@ def plot_two_maps(img, overlay, start, end, row_l=6, step=1, title='',
     for line in range(int(slice_nb/float(row_l) + 1)):
         opt = {'title':{True:title,
                         False:None}[line==0],
-               'colorbar':True,
+               'colorbar':False,
                'black_bg':True,
                'display_mode':axis,
                'threshold':threshold,
-               'cmap': plotting.cm.blue_transparent,
                'cut_coords':range(start + line * row_l * step,
                                        start + (line+1) * row_l * step,
                                        step)}
@@ -120,6 +124,8 @@ def plot_two_maps(img, overlay, start, end, row_l=6, step=1, title='',
                         'view_type': 'contours'})
         elif method == 'plot_stat_map':
             opt.update({'stat_map_img': img})
+        if not cmap is None:
+            opt.update({'cmap': getattr(cm, cmap)})
 
         t = getattr(plotting, method).__call__(**opt)
 
@@ -127,9 +133,9 @@ def plot_two_maps(img, overlay, start, end, row_l=6, step=1, title='',
         if not overlay is None:
             if isinstance(overlay, list):
                 for each in overlay:
-                    t.add_overlay(each, cmap=plotting.cm.red_transparent)
+                    t.add_overlay(each, cmap=cm.hot, threshold=0.95, colorbar=True)
             else:
-                t.add_overlay(overlay, cmap=plotting.cm.red_transparent)
+                t.add_overlay(overlay, cmap=cm.hot, threshold=0.95, colorbar=True)
 
         # Converting to PIL and appending it to the list
         buf = io.BytesIO()
@@ -236,3 +242,66 @@ def sections_allcontrasts(path, title, contrasts='all', mode='uncorrected',
                 pngfile = _thiscontrast(i)
                 sections.append((node.inputs.contrasts[i-1][0], pngfile))
     return sections
+
+
+def plot_tbss(img, mean_FA_skeleton, start, end, row_l=6, step=1, title='',
+    axis='z', pngfile=None):
+    ''' Inspired from plot_two_maps. Plots a TBSS contrast map over the
+    skeleton of a mean FA map'''
+
+    # Dilate tbss map
+    import numpy as np
+    from skimage.morphology import cube
+    from skimage.morphology import dilation
+    from nilearn import image
+    d = np.array(image.load_img(img).dataobj)
+    dil_tbss = dilation(d, cube(2))
+    dil_tbss_img = image.new_img_like(img, dil_tbss)
+
+    slice_nb = int(abs(((end - start) / float(step))))
+    images = []
+
+    for line in range(int(slice_nb/float(row_l) + 1)):
+        opt = {'title':{True:title,
+                        False:None}[line==0],
+               'colorbar':False,
+               'black_bg':True,
+               'display_mode':axis,
+               'threshold':0.2,
+               'cmap': cm.Greens,
+               'cut_coords':range(start + line * row_l * step,
+                                       start + (line+1) * row_l * step,
+                                       step)}
+        method = 'plot_stat_map'
+        opt.update({'stat_map_img': mean_FA_skeleton})
+
+        t = getattr(plotting, method).__call__(**opt)
+
+
+        try:
+            # Add overlay
+            t.add_overlay(dil_tbss_img, cmap=cm.hot, threshold=0.95, colorbar=True)
+        except TypeError:
+            print img, 'probably empty tbss map'
+            pass
+
+        # Converting to PIL and appending it to the list
+        buf = io.BytesIO()
+        t.savefig(buf)
+        buf.seek(0)
+        im = Image.open(buf)
+        images.append(im)
+
+    # Joining the images
+    imsize = images[0].size
+    out = Image.new('RGBA', size=(imsize[0], len(images)*imsize[1]))
+    for i, im in enumerate(images):
+        box = (0, i * imsize[1], imsize[0], (i+1) * imsize[1])
+        out.paste(im, box)
+
+    if pngfile is None:
+        import tempfile
+        pngfile = tempfile.mkstemp(suffix='.png')[1]
+    print 'Saving to...', pngfile, '(%s)'%title
+
+    out.save(pngfile)
