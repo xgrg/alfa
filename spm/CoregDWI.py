@@ -10,10 +10,10 @@ import os.path as osp
 import argparse
 
 def coregister_maps(c1_dir, rc1_dir, l2_dir, base_dir, subjects, fp='_mabonlm_nobias'):
-    '''In directory `wd1` looks for SPM grey maps (*c1.nii), will generate their
-    realign version in that same place (r*c1.nii) and will apply that realignment
-    to a set of images found in `wd2` containing the pattern `fp` for a given
-    list of `subjects`.'''
+    '''In directory `c1_dir` looks for SPM grey maps (*c1.nii), will generate
+    their realigned version in that same place (r*c1.nii) and will apply that
+    realignment to a set of images found in `l2_dir` containing the pattern `fp`
+    for a given list of `subjects`.'''
 
     files = {'dwi':[],
              't1':[],
@@ -23,8 +23,8 @@ def coregister_maps(c1_dir, rc1_dir, l2_dir, base_dir, subjects, fp='_mabonlm_no
     for s in subjects:
         try:
             fpatterns = {'dwi': osp.join(l2_dir, '%s*%s*.nii'%(s, fp)),
-                         't1' : osp.join(rc1_dir, 'r%s*_c1.nii'%s),
-                         'rt1': osp.join(c1_dir, '%s*_c1.nii'%s)}
+                         'rt1' : osp.join(rc1_dir, 'r%s*_c1.nii'%s),
+                         't1': osp.join(c1_dir, '%s*_c1.nii'%s)}
             for each, filepath in fpatterns.items():
                 tfiles = glob(filepath)
                 if len(tfiles) != 1:

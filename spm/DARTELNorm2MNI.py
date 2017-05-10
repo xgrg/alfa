@@ -9,22 +9,23 @@ from glob import glob
 import os.path as osp
 import argparse
 
-def dartel_normalization_to_mni(wd1, wd2, template_fp, subjects, fwhm=0, modulate=False):
+def dartel_normalization_to_mni(ff_dir, l2_dir, base_dir, fp, template_fp, subjects, fwhm=0, modulate=False):
     ff, rdwi = [], []
     subjects2 = []
     for s in subjects:
         print s
-        try:
-            fffp = glob(osp.join(wd1, 'u_r*%s*_c1_Template.nii'%s))[0]
-              # DARTEL flow fields
-            rdwifp = glob(osp.join(wd2, 'r%s*_mabonlm_nobias.nii'%s))[0]
-              # Moving images
+        #try:
+        fffp = glob(osp.join(ff_dir, 'u_r*%s*_c1_Template.nii'%s))[0]
+          # DARTEL flow fields
+        print osp.join(l2_dir, 'r%s*_%s.nii'%(s, fp))
+        rdwifp = glob(osp.join(l2_dir, 'r%s*_%s.nii'%(s, fp)))[0]
+          # Moving images
 
-            rdwi.append(rdwifp)
-            ff.append(fffp)
-            subjects2.append(s)
-        except:
-            print s, 'failed'
+        rdwi.append(rdwifp)
+        ff.append(fffp)
+        subjects2.append(s)
+        #except:
+        #    print s, 'failed'
     print len(rdwi)
     print ff, rdwi
 
@@ -33,12 +34,12 @@ def dartel_normalization_to_mni(wd1, wd2, template_fp, subjects, fwhm=0, modulat
     nm = pe.Node(spm.DARTELNorm2MNI(), name='Norm2MNI')
     nm.inputs.template_file = template_fp
     nm.inputs.flowfield_files = ff
-    nm.inputs.fwhm = 0
+    nm.inputs.fwhm = fwhm
     nm.inputs.apply_to_files = rdwi
     nm.inputs.modulate = False
 
     w = pe.Workflow(name='DARTELNorm2MNI')
-    w.base_dir = od
+    w.base_dir = base_dir
     w.add_nodes([nm])
     w.run('MultiProc', plugin_args={'n_procs' : 6})
 
@@ -49,14 +50,19 @@ if __name__ == '__main__':
         ' flowfields (u_r*nii)')
     parser.add_argument('source_directory2', help='Directory containing the '
         'realigned images (r*.nii) and the normalized images ((s)wr*.nii)')
+    parser.add_argument('target_directory', help='Directory to write the realigned'
+        ' sets of images (e.g. r*_c1.nii). (default: source directory)')
     parser.add_argument('--fwhm', default=0, help='Gaussian smoothing kernel to'
         ' use (FWHM) in mm (default:no smoothing)')
     parser.add_argument('subjects', help='Json file containing a list of'\
         'identifiers (allowing to select/discard subjects)')
     parser.add_argument('dartel_template', help='Path to Template_6.nii')
+    parser.add_argument('file_pattern', help='Pattern to look for in the filenames '
+            '(from the second set)')
 
     opts = parser.parse_args()
     subjects = json.load(open(opts.subjects))
 
-    run_dartel(opts.source_directory, opts.target_directory, opts.dartel_template,
-        opts.fwhm, subjects)
+    dartel_normalization_to_mni(opts.source_directory1, opts.source_directory2,
+        opts.target_directory, opts.file_pattern, opts.dartel_template,
+        subjects, opts.fwhm)
