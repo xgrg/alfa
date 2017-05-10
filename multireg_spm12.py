@@ -32,49 +32,75 @@ def make_contrasts(names):
 
     contrasts = []
 
-    if 'Apoe2-3' in names:
-        print 'ApoE groups detected'
+    cont1 = ('Apo2-3>Apo2-4', 'T', ['Apoe2-3', 'Apoe2-4'], [1,-1])
+    cont2 = ('Apo2-4>Apo3-3', 'T', ['Apoe2-4', 'Apoe3-3'], [1,-1])
+    cont3 = ('Apo3-3>Apo3-4', 'T', ['Apoe3-3', 'Apoe3-4'], [1,-1])
+    cont4 = ('Apo3-4>Apo4-4', 'T', ['Apoe3-4', 'Apoe4-4'], [1,-1])
+    cont4 = ('Apo4-4>Apo3-3', 'T', ['Apoe4-4', 'Apoe3-3'], [1,-1])
+    cont5 = ('Main effect ApoE', 'F', [cont1, cont2, cont3, cont4])
+    cont6 = ('C<NC', 'T', ['Apoe2-3', 'Apoe2-4', 'Apoe3-3', 'Apoe3-4', 'Apoe4-4'], [3, -2, 3, -2, -2])
+    cont7 = ('C>NC', 'T', ['Apoe2-3', 'Apoe2-4', 'Apoe3-3', 'Apoe3-4', 'Apoe4-4'], [-3, 2, -3, 2, 2])
+    cont8 = ('HO<All', 'T', ['Apoe2-3', 'Apoe2-4', 'Apoe3-3', 'Apoe3-4', 'Apoe4-4'], [1, 1, 1, 1, -4])
+    cont9 = ('HO>All', 'T', ['Apoe2-3', 'Apoe2-4', 'Apoe3-3', 'Apoe3-4', 'Apoe4-4'], [-1, -1, -1, -1, 4])
+    cont10 = ('HO<HT', 'T', ['Apoe2-4', 'Apoe3-4', 'Apoe4-4'], [1, 1, -2])
+    cont11 = ('HO>HT', 'T', ['Apoe2-4', 'Apoe3-4', 'Apoe4-4'], [-1, -1, 2])
+    cont12 = ('HO<NC', 'T', ['Apoe2-3', 'Apoe3-3', 'Apoe4-4'], [1, 1, -2])
+    cont13 = ('HO>NC', 'T', ['Apoe2-3', 'Apoe3-3', 'Apoe4-4'], [-1, -1, 2])
+    cont14 = ('HT<NC', 'T', ['Apoe2-3', 'Apoe2-4', 'Apoe3-3', 'Apoe3-4'], [1, -1, 1, -1])
+    cont15 = ('HT>NC', 'T', ['Apoe2-3', 'Apoe2-4', 'Apoe3-3', 'Apoe3-4'], [-1, 1, -1, 1])
+    cont16 = ('Dose-dependent effect', 'T', ['Apoe3-3', 'Apoe3-4', 'Apoe4-4'], [-1, 0, 1])
 
-        cont1 = ('Apo2-3>Apo2-4', 'T', ['Apoe2-3', 'Apoe2-4'], [1,-1])
-        cont2 = ('Apo2-4>Apo3-3', 'T', ['Apoe2-4', 'Apoe3-3'], [1,-1])
-        cont3 = ('Apo3-3>Apo3-4', 'T', ['Apoe3-3', 'Apoe3-4'], [1,-1])
-        cont4 = ('Apo3-4>Apo4-4', 'T', ['Apoe3-4', 'Apoe4-4'], [1,-1])
-        cont5 = ('Main effect ApoE', 'F', [cont1, cont2, cont3, cont4])
-        cont6 = ('C<NC', 'T', ['Apoe2-3', 'Apoe2-4', 'Apoe3-3', 'Apoe3-4', 'Apoe4-4'], [3, -2, 3, -2, -2])
-        cont7 = ('C>NC', 'T', ['Apoe2-3', 'Apoe2-4', 'Apoe3-3', 'Apoe3-4', 'Apoe4-4'], [-3, 2, -3, 2, 2])
-        cont8 = ('HO<All', 'T', ['Apoe2-3', 'Apoe2-4', 'Apoe3-3', 'Apoe3-4', 'Apoe4-4'], [1, 1, 1, 1, -4])
-        cont9 = ('HO>All', 'T', ['Apoe2-3', 'Apoe2-4', 'Apoe3-3', 'Apoe3-4', 'Apoe4-4'], [-1, -1, -1, -1, 4])
-        cont10 = ('HO<HT', 'T', ['Apoe2-4', 'Apoe3-4', 'Apoe4-4'], [1, 1, -2])
-        cont11 = ('HO>HT', 'T', ['Apoe2-4', 'Apoe3-4', 'Apoe4-4'], [-1, -1, 2])
-        cont12 = ('HO<NC', 'T', ['Apoe2-3', 'Apoe3-3', 'Apoe4-4'], [1, 1, -2])
-        cont13 = ('HO>NC', 'T', ['Apoe2-3', 'Apoe3-3', 'Apoe4-4'], [-1, -1, 2])
-        cont14 = ('HT<NC', 'T', ['Apoe2-3', 'Apoe2-4', 'Apoe3-3', 'Apoe3-4'], [1, -1, 1, -1])
-        cont15 = ('HT>NC', 'T', ['Apoe2-3', 'Apoe2-4', 'Apoe3-3', 'Apoe3-4'], [-1, 1, -1, 1])
-        cont16 = ('Dose-dependent effect', 'T', ['Apoe3-3', 'Apoe3-4', 'Apoe4-4'], [-1, 0, 1])
+    groups_cont = []
+    groups_cont.extend([cont1, cont2, cont3, cont4, cont5, cont6, cont7, cont8, cont9, cont10, cont11, cont12, cont13, cont14, cont15, cont16])
 
-        contrasts.extend([cont1, cont2, cont3, cont4, cont5, cont6, cont7, cont8, cont9, cont10, cont11, cont12, cont13, cont14, cont15, cont16])
+    grp = ['Apoe2-3', 'Apoe2-4', 'Apoe3-3', 'Apoe3-4', 'Apoe4-4']
+    present_groups = list(set(grp).intersection(set(names)))
+    if len(present_groups) > 1:
+        for c in groups_cont:
+            if c[1] == 'F':
+                if len(present_groups) == len(grp):
+                    contrasts.append(c)
+                    print c[0], 'detected'
+            else:
+                name,_,g,_ = c
+                if len(set(g).difference(set(present_groups))) == 0:
+                    contrasts.append(c)
+                    print name, 'detected'
 
-    if 'age23' in names:
-        print 'Interaction linear age-genotype detected'
+    ages_cont = []
+    cont17 = ('age23>age24', 'T', ['age23', 'age24'], [1,-1])
+    cont18 = ('age24>age33', 'T', ['age24', 'age33'], [1,-1])
+    cont19 = ('age33>age34', 'T', ['age33', 'age34'], [1,-1])
+    cont20 = ('age34>age44', 'T', ['age34', 'age44'], [1,-1])
+    cont21 = ('Interaction linear age-genotype', 'F', [cont17, cont18, cont19, cont20])
+    cont22 = ('C<NC_Age_Linear', 'T', ['age23', 'age24', 'age33', 'age34', 'age44'], [3, -2, 3, -2, -2])
+    cont23 = ('C>NC_Age_Linear', 'T', ['age23', 'age24', 'age33', 'age34', 'age44'], [-3, 2, -3, 2, 2])
+    cont24 = ('HO<All_Age_Linear', 'T', ['age23', 'age24', 'age33', 'age34', 'age44'], [1, 1, 1, 1, -4])
+    cont25 = ('HO>All_Age_Linear', 'T', ['age23', 'age24', 'age33', 'age34', 'age44'], [-1, -1, -1, -1, 4])
+    cont26 = ('HO<HT_Age_Linear', 'T', ['age24', 'age34', 'age44'], [1, 1, -2])
+    cont27 = ('HO>HT_Age_Linear', 'T', ['age24', 'age34', 'age44'], [-1, -1, 2])
+    cont28 = ('HO<NC_Age_Linear', 'T', ['age23', 'age33', 'age44'], [1, 1, -2])
+    cont29 = ('HO>NC_Age_Linear', 'T', ['age23', 'age33', 'age44'], [-1, -1, 2])
+    cont30 = ('HT<NC_Age_Linear', 'T', ['age23', 'age24', 'age33', 'age34'], [1, -1, 1, -1])
+    cont31 = ('HT>NC_Age_Linear', 'T', ['age23', 'age24', 'age33', 'age34'], [-1, 1, -1, 1])
+    ages_cont.extend([cont17, cont18, cont19, cont20, cont21, cont22, cont23, cont24, cont25, cont26, cont27, cont28, cont29, cont30, cont31])
 
-        cont17 = ('age23>age24', 'T', ['age23', 'age24'], [1,-1])
-        cont18 = ('age24>age33', 'T', ['age24', 'age33'], [1,-1])
-        cont19 = ('age33>age34', 'T', ['age33', 'age34'], [1,-1])
-        cont20 = ('age34>age44', 'T', ['age34', 'age44'], [1,-1])
-        cont21 = ('Interaction linear age-genotype', 'F', [cont17, cont18, cont19, cont20])
-        cont22 = ('C<NC_Age_Linear', 'T', ['age23', 'age24', 'age33', 'age34', 'age44'], [3, -2, 3, -2, -2])
-        cont23 = ('C>NC_Age_Linear', 'T', ['age23', 'age24', 'age33', 'age34', 'age44'], [-3, 2, -3, 2, 2])
-        cont24 = ('HO<All_Age_Linear', 'T', ['age23', 'age24', 'age33', 'age34', 'age44'], [1, 1, 1, 1, -4])
-        cont25 = ('HO>All_Age_Linear', 'T', ['age23', 'age24', 'age33', 'age34', 'age44'], [-1, -1, -1, -1, 4])
-        cont26 = ('HO<HT_Age_Linear', 'T', ['age24', 'age34', 'age44'], [1, 1, -2])
-        cont27 = ('HO>HT_Age_Linear', 'T', ['age24', 'age34', 'age44'], [-1, -1, 2])
-        cont28 = ('HO<NC_Age_Linear', 'T', ['age23', 'age33', 'age44'], [1, 1, -2])
-        cont29 = ('HO>NC_Age_Linear', 'T', ['age23', 'age33', 'age44'], [-1, -1, 2])
-        cont30 = ('HT<NC_Age_Linear', 'T', ['age23', 'age24', 'age33', 'age34'], [1, -1, 1, -1])
-        cont31 = ('HT>NC_Age_Linear', 'T', ['age23', 'age24', 'age33', 'age34'], [-1, 1, -1, 1])
+    ages = ['age23','age24','age33','age34','age44']
+    present_ages = list(set(ages).intersection(set(names)))
+    if len(present_groups) > 1:
+        for c in ages_cont:
+            if c[1] == 'F':
+                if len(present_groups) == len(grp):
+                    contrasts.append(c)
+                    print c[0], 'detected'
+            else:
+                name,_,g,_ = c
+                if len(set(g).difference(set(present_ages))) == 0:
+                    contrasts.append(c)
+                    print name, 'detected'
 
-        contrasts.extend([cont17, cont18, cont19, cont20, cont21, cont22, cont23, cont24, cont25, cont26, cont27, cont28, cont29, cont30, cont31])
 
+    #TODO: rewrite agesq contrasts as age linear contrasts
     if 'agesq23' in names:
         print 'Interaction quadratic age-genotype detected'
 
