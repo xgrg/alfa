@@ -51,7 +51,7 @@ def collect_roivalues(roilabel, csvfiles, subjects, verbose=False):
 def correct(df):
     ''' Applies a correction for covariates to a given DataFrame'''
 
-    model = 'roi ~ 1 + C(apo) + gender + educyears + ventricles'
+    model = 'roi ~ 1 + gender + educyears + apo'
     print 'Model used for correction:', model
     test_scores = ols(model, data=df).fit()
 
@@ -83,24 +83,28 @@ def get_groups(dataset, groups_names):
                  'NC': [0,2],
                  'HO': [4],
                  'HT': [1,3],
-                 'All':[0,1,2,3],
+                 'notHO':[0,1,2,3],
                  'apoe44': [4],
                  'apoe34': [3],
                  'apoe33': [2],
                  'apoe24': [1],
-                 'apoe23': [0]}
+                 'apoe23': [0],
+                 'All':[0,1,2,3,4]}
     for name in groups_names:
         for k,v in groups_ht.items():
             if name == k:
                 groups.append(pd.concat([groups1[i] for i in v]))
+    if len(groups) == 0:
+        return groups1
     return groups
 
 
-def plot_region(dataset, roi_name, groups=None, order=1, ax=None, ylim=[0.0005, 0.0010]):
+def plot_region(dataset, roi_name='', groups=None, order=1, ax=None, ylim=[0.0005, 0.0010], c=None):
+    from scipy import interpolate
 
     if ax == None:
         fig = plt.figure(figsize=(6, 6))
-        set_figaxes(dataset, ylim=ylim)
+        set_figaxes(dataset, ylim=[dataset['roi'].min(), dataset['roi'].max()])
         ax = fig.add_subplot(111)
 
     font = FontProperties(family='sans-serif', weight='light')
@@ -113,7 +117,7 @@ def plot_region(dataset, roi_name, groups=None, order=1, ax=None, ylim=[0.0005, 
                 'roi ~ 1 + age + I(age**2)',
                 'roi ~ 1 + age + I(age**2) + I(age**3)']
 
-    print 'Region:', roi_name, '- Fitting order:', order, '- Formula:', formulas[order-1]
+    print 'Region:', roi_name#, '- Fitting order:', order, '- Formula:', formulas[order-1]
 
     # Splits the dataset into genotypic groups
     if groups is None:
@@ -123,19 +127,20 @@ def plot_region(dataset, roi_name, groups=None, order=1, ax=None, ylim=[0.0005, 
 
     for i, df in enumerate(groups_sub):
         # Plots the group cloud
-        ax.scatter(df['age'], df['roi'], edgecolors=edgecolors[i],
-                   facecolors=facecolors[i], linewidth=0.5,
+        eg = edgecolors[i] if c==None else edgecolors[i+1]
+        fg = facecolors[i] if c==None else facecolors[i+1]
+        ax.scatter(df['age'], df['roi'], edgecolors=eg, facecolors=fg, linewidth=0.5,
                    label='%s'%groups[i].capitalize(), s=20, alpha=0.7)
 
         # Fits a line on the group data
-        x = pd.DataFrame({'age': np.linspace(df['age'].min(), df['age'].max(), 100)})
+        x = pd.DataFrame({'age': np.linspace(df['age'].min(), df['age'].max(), 500)})
         poly = ols(formula=formulas[order-1], data=df).fit()
         ypred = poly.predict(x)
 
         # Draws the fitted line
-        ax.plot(x['age'], ypred, color=edgecolors[i], linestyle='-',
-                label='%s n=%s $R^2$=%.2f $AIC$=%.2f $\sigma$=%.3e'
-                 % (groups[i].capitalize(), order, poly.rsquared, poly.aic, np.std(ypred)),
+        ax.plot(x['age'], ypred, color=eg, linestyle='-',
+                label='%s $\sigma$=%.3e' # n=%s $R^2$=%.2f $AIC$=%.2f '
+                 % (groups[i].capitalize(), np.std(ypred)), #, order, poly.rsquared, poly.aic),
                 alpha=1.0)
 
     # Legend, text, title...
@@ -158,7 +163,7 @@ def plot_regions(data, labels, csvfiles, subjects, names=None, groups=None,
     in the table `data` (i.e. genotype, gender, education, ventricular volume)
     `ylim` sets y-limits on the final plot. '''
 
-    fig = plt.figure(figsize=(8*nb_orders, 8*len(labels)), dpi=300, facecolor='white')
+    fig = plt.figure(figsize=(8*nb_orders*2, 12*len(labels)), dpi=300, facecolor='white')
 
     # Managing options
     if names is None:
@@ -179,7 +184,7 @@ def plot_regions(data, labels, csvfiles, subjects, names=None, groups=None,
         for order in range(1, nb_orders+1):
 
             # 1-st order
-            ax = fig.add_subplot(len(labels), nb_orders, nb_orders*i + order)
+            ax = fig.add_subplot(len(labels)*2, nb_orders*2, 2*nb_orders*i + order)
 
             # Fetch values for the given ROI and correct them for covariates
             roivalues = collect_roivalues(roi_label, csvfiles=csvfiles, subjects=subjects)
@@ -201,3 +206,40 @@ def plot_regions(data, labels, csvfiles, subjects, names=None, groups=None,
             # Plots the corrected values and fits a line over them
             set_figaxes(df, ylim=ylim) # Adjusts the axes according to the values
             plot_region(df, roi_name, order=order, groups=groups, ax=ax)
+            ax = fig.add_subplot(len(labels)*2, nb_orders*2, 2*nb_orders*i + order + 1 )
+            boxplot_region(df, groups, ax=ax)
+    fig.savefig('/tmp/fig.svg')
+
+def plot_significance(df, x1, x2, groups):
+    # statistical annotation
+    import scipy
+
+    T = scipy.stats.ttest_ind(df[df['group']==groups[x1]]['roi'],
+            df[df['group']==groups[x2]]['roi'])
+    print T.pvalue
+    y, h, col = df['roi'].mean() + df['roi'].std() + 1e-4, 1e-5, 'k'
+    plt.plot([x1, x1, x2, x2], [y, y+h, y+h, y], lw=1.5, c=col)
+    opt = {'ha':'center', 'va':'bottom', 'color':col}
+    if T.pvalue<0.05:
+        opt['weight'] = 'bold'
+    plt.text((x1+x2)*.5, y+h, '%.3f'%T.pvalue, **opt)
+
+def boxplot_region(df, groups, ax=None):
+    import seaborn as sns
+    # Plots the corrected values and fits a line over them
+    groups_sub = get_groups(df, groups_names = groups)
+    if ax == None:
+        pass
+        #fig = plt.figure(figsize=(6, 6))
+        #set_figaxes(df, ylim=[df['roi'].min(), df['roi'].max()])
+        #ax = fig.add_subplot(111)
+
+    grp = []
+    for i, each in enumerate(groups_sub):
+        each['group'] = len(each['apo']) * [groups[i]]
+        grp.append(each)
+    df = pd.concat(grp)
+    sns.boxplot(x='group', y='roi', data=df, showfliers=False)#, ax=ax)
+    import itertools
+    for i1, i2 in itertools.combinations(xrange(len(groups)), 2):
+        plot_significance(df, i1, i2, groups)

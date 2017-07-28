@@ -251,8 +251,7 @@ def plot_tbss(img, mean_FA_skeleton, start, end, row_l=6, step=1, title='',
 
     # Dilate tbss map
     import numpy as np
-    from skimage.morphology import cube
-    from skimage.morphology import dilation
+    from skimage.morphology import cube, dilation
     from nilearn import image
     d = np.array(image.load_img(img).dataobj)
     dil_tbss = dilation(d, cube(2))
