@@ -76,7 +76,7 @@ def validate_session_from_df(df, project, xnatId, verbose=False):
     log = []
 
     # Checks emptiness before starting anything
-    df2 = df[df['xnatId'] == xnatId][['ID', 'type', 'frames']]
+    df2 = df[df['xnatId'] == xnatId][['ID', 'type', 'frames', 'file_count']]
     session_seqlist = df2['type'].tolist() # List of sequences of the session
 
     if df2.empty:
@@ -156,8 +156,8 @@ def validate_session_from_df(df, project, xnatId, verbose=False):
     print session_seqlist, transtab
     # Checking obligatory
     for k, v in rules[project]['obligatory'].items():
-
-        if session_seqlist.count(k) == 1 and df2[df2['type'] == transtab[k]]['frames'].iloc[0] != str(v):
+        key = 'frames' if not 'CHESS' in transtab[k] else 'file_count'
+        if session_seqlist.count(k) == 1 and df2[df2['type'] == transtab[k]][key].iloc[0] != str(v):
             log.append('*** %s is unique but has wrong file_count (%s instead of %s) ***'%(k, df2[df2['type'] == transtab[k]]['frames'].iloc[0], v))
             result = 2
         if session_seqlist.count(k) > 1:
