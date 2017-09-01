@@ -101,7 +101,7 @@ def get_groups(dataset, groups_names, by='apo'):
     return groups
 
 
-def plot_region(dataset, roi_name='', groups=None, order=1, ax=None, ylim=[0.0005, 0.0010], c=None):
+def plot_region(dataset, roi_name='', groups=None, by='apo', order=1, ax=None, ylim=[0.0005, 0.0010], c=None):
     from scipy import interpolate
 
     if ax == None:
@@ -112,8 +112,8 @@ def plot_region(dataset, roi_name='', groups=None, order=1, ax=None, ylim=[0.000
     font = FontProperties(family='sans-serif', weight='light')
 
     #TODO: dictionaries for always matched pairs groups/colors
-    edgecolors = ['#800000','#003366','#ff8000','#cc6699','#33cc33']
-    facecolors = ['#ff9999','#99ccff','#ffd699','#ecc6d9','#adebad']
+    edgecolors = ['#800000','#ff8000','#003366','#cc6699','#33cc33']
+    facecolors = ['#ff9999','#ffd699','#99ccff','#ecc6d9','#adebad']
 
     formulas = ['roi ~ 1 + age',
                 'roi ~ 1 + age + I(age**2)',
@@ -125,7 +125,7 @@ def plot_region(dataset, roi_name='', groups=None, order=1, ax=None, ylim=[0.000
     if groups is None:
         print 'WARNING: using the 5 genotypic groups'
         groups = ['apoe44', 'apoe34', 'apoe24', 'apoe33', 'apoe23']
-    groups_sub = get_groups(dataset, groups_names = groups)
+    groups_sub = get_groups(dataset, groups_names = groups, by=by)
 
     for i, df in enumerate(groups_sub):
         # Plots the group cloud
@@ -153,7 +153,7 @@ def plot_region(dataset, roi_name='', groups=None, order=1, ax=None, ylim=[0.000
     plt.title(roi_name, fontproperties=font)
 
 
-def plot_regions(data, labels, csvfiles, subjects, names=None, groups=None,
+def plot_regions(data, labels, csvfiles, subjects, names, groups, by,
         nb_orders=1, do_correct=True, ylim=[0.0005, 0.0010]):
     ''' Generates a plot of ROI values to be looked up in a set of csvfiles,
     given a set of `labels`, a set of `subjects`.
@@ -167,16 +167,8 @@ def plot_regions(data, labels, csvfiles, subjects, names=None, groups=None,
 
     fig = plt.figure(figsize=(8*nb_orders*2, 12*len(labels)), dpi=300, facecolor='white')
 
-    # Managing options
-    if names is None:
-        print 'WARNING: using default values for labels'
-        names = {1:'left_occip', 2:'left_temporal', 3:'left_temporal2',
-            4:'right_perihorn', 5:'left_occip2', 6:'left_perihorn', 7:'left_wm',
-            8:'right_occip', 9:'right_temporal', 10:'left_insula'}
-        print names
-    if groups is None:
-        groups = ['HO', 'HT', 'NC']
-        print 'using default groups'
+    print names
+    print 'groups', groups
 
     # Iterate on labels
     for i, roi_label in enumerate(labels):
@@ -194,22 +186,32 @@ def plot_regions(data, labels, csvfiles, subjects, names=None, groups=None,
 
             print 'Standard deviation of label %s:'%roi_name,\
                         np.std(df['roi'])
-            if do_correct:
-                ycorr = pd.DataFrame(correct(df), columns=['roi'])
-                df = data.join(ycorr)
-                df['subject'] = df.index
-                df = df.sort_values(['apo', 'subject']).dropna()
-                print 'Standard deviation after correction for covariates:',\
-                        np.std(df['roi'])
-            else:
-                df['subject'] = df.index
-                df = df.sort_values(['apo', 'subject']).dropna()
+
+            # correction without ajusting for age
+            adj_model = 'roi ~ 1 + gender'
+            ycorr = pd.DataFrame(correct(df, adj_model), columns=['roi'])
+            df = data.join(ycorr)
+            print 'Standard deviation after correction for model %s:'%adj_model,\
+                    np.std(df['roi'])
+            df['subject'] = df.index
+            df = df.sort_values(['apo', 'subject']).dropna()
 
             # Plots the corrected values and fits a line over them
             set_figaxes(df, ylim=ylim) # Adjusts the axes according to the values
-            plot_region(df, roi_name, order=order, groups=groups, ax=ax)
+            plot_region(df, roi_name, order=order, groups=groups, by=by, ax=ax)
             ax = fig.add_subplot(len(labels)*2, nb_orders*2, 2*nb_orders*i + order + 1 )
-            boxplot_region(df, groups, ax=ax)
+
+
+            # correction also ajusting for age
+            adj_model = 'roi ~ 1 + gender + age'
+            ycorr = pd.DataFrame(correct(df, adj_model), columns=['roi'])
+            df = data.join(ycorr)
+            print 'Standard deviation after correction for model %s:'%adj_model,\
+                    np.std(df['roi'])
+            df['subject'] = df.index
+            df = df.sort_values(['apo', 'subject']).dropna()
+
+            boxplot_region(df, groups, by=by, ax=ax)
     fig.savefig('/tmp/fig.svg')
 
 def plot_significance(df, x1, x2, groups):
@@ -226,22 +228,22 @@ def plot_significance(df, x1, x2, groups):
         opt['weight'] = 'bold'
     plt.text((x1+x2)*.5, y+h, '%.3f'%T.pvalue, **opt)
 
-def boxplot_region(df, groups, ax=None):
+def boxplot_region(df, groups, by='apo', ax=None):
     import seaborn as sns
     # Plots the corrected values and fits a line over them
-    groups_sub = get_groups(df, groups_names = groups)
+    groups_sub = get_groups(df, groups_names = groups, by=by)
     if ax == None:
         pass
         #fig = plt.figure(figsize=(6, 6))
         #set_figaxes(df, ylim=[df['roi'].min(), df['roi'].max()])
         #ax = fig.add_subplot(111)
-
     grp = []
     for i, each in enumerate(groups_sub):
-        each['group'] = len(each['apo']) * [groups[i]]
+        each['group'] = len(each[by]) * [groups[i]]
         grp.append(each)
     df = pd.concat(grp)
-    sns.boxplot(x='group', y='roi', data=df, showfliers=False)#, ax=ax)
+
+    sns.boxplot(x='group', y='roi', data=df, showfliers=False, palette={'HO':'#ff9999', 'HT':'#ffd699','NC':'#99ccff', 'notHO':'#99ccff', 'f':'#ff9999', 'm':'#99ccff'})#, ax=ax)
     import itertools
     for i1, i2 in itertools.combinations(xrange(len(groups)), 2):
         plot_significance(df, i1, i2, groups)
