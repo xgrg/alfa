@@ -71,13 +71,13 @@ def set_figaxes(df, ylim=None):
     plt.xlim([df['age'].min(), df['age'].max()])
 
 
-def get_groups(dataset, groups_names):
+def get_groups(dataset, groups_names, by='apo'):
     '''Splits a dataset according to genotypic groups. Returns a list of
     DataFrames plus a list of group names.'''
     # take each group separately
     groups1 = []
     for i in xrange(5):
-        groups1.append(dataset[dataset['apo'] == i])
+        groups1.append(dataset[dataset[by] == i])
     groups = []
     groups_ht = {'C': [1,3,4],
                  'NC': [0,2],
@@ -89,7 +89,9 @@ def get_groups(dataset, groups_names):
                  'apoe33': [2],
                  'apoe24': [1],
                  'apoe23': [0],
-                 'All':[0,1,2,3,4]}
+                 'All':[0,1,2,3,4],
+                 'm':[0],
+                 'f':[1]}
     for name in groups_names:
         for k,v in groups_ht.items():
             if name == k:
