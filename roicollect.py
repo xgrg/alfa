@@ -48,10 +48,10 @@ def collect_roivalues(roilabel, csvfiles, subjects, verbose=False):
             print 'IndexError: skipped subject', s, 'label', e
     return pd.DataFrame(data, index=subj, columns=['roi'])
 
-def correct(df):
+def correct(df, model='roi ~ 1 + gender + age'): #educyears + apo' ):
     ''' Applies a correction for covariates to a given DataFrame'''
 
-    model = 'roi ~ 1 + gender + educyears + apo'
+    #model = 'roi ~ 1 + gender + age' #educyears + apo'
     print 'Model used for correction:', model
     test_scores = ols(model, data=df).fit()
 
