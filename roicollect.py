@@ -31,13 +31,6 @@ def collect_roivalues(roilabel, csvfiles, subjects, verbose=False):
 
     assert(len(csvfiles) == len(subjects))
     for s, fp in zip(subjects, csvfiles):
-        #fp = osp.join(src, filepattern%s)
-        #if verbose:
-        #    print s, fp
-        #if not osp.isfile(fp):
-        #    if len(glob(fp)) != 1:
-        #        raise AssertionError('multiple files found %s'%str(glob(fp)))
-        #    fp = glob(fp)[0]  #in case a glob string is passed
         df = pd.read_csv(fp, sep='\t').set_index('ROI_label')
         try:
             data.append(df.ix[roilabel]['mean'])
@@ -50,8 +43,6 @@ def collect_roivalues(roilabel, csvfiles, subjects, verbose=False):
 
 def correct(df, model='roi ~ 1 + gender + age'): #educyears + apo' ):
     ''' Applies a correction for covariates to a given DataFrame'''
-
-    #model = 'roi ~ 1 + gender + age' #educyears + apo'
     print 'Model used for correction:', model
     test_scores = ols(model, data=df).fit()
 
@@ -60,24 +51,19 @@ def correct(df, model='roi ~ 1 + gender + age'): #educyears + apo' ):
 
     return ycorr
 
-def set_figaxes(df, ylim=None):
+def set_figaxes(df, ylim=None, xlim=None):
     font = FontProperties(family='sans-serif', weight='heavy')
     plt.xlabel('age', fontproperties=font)
     plt.ylabel('roi', fontproperties=font)
     if not ylim is None:
         plt.ylim(ylim)
-    #else:
-     #df['roi'].max()])
-    plt.xlim([df['age'].min(), df['age'].max()])
+    plt.xlim([df['age'].min()-1, df['age'].max()+1])
 
 
 def get_groups(dataset, groups_names, by='apo'):
     '''Splits a dataset according to genotypic groups. Returns a list of
     DataFrames plus a list of group names.'''
-    # take each group separately
-    groups1 = []
-    for i in xrange(5):
-        groups1.append(dataset[dataset[by] == i])
+    groups1 = [dataset[dataset[by] == i] for i in xrange(5)]
     groups = []
     groups_ht = {'C': [1,3,4],
                  'NC': [0,2],
@@ -141,15 +127,17 @@ def plot_region(dataset, roi_name='', groups=None, by='apo', order=1, ax=None, y
 
         # Draws the fitted line
         ax.plot(x['age'], ypred, color=eg, linestyle='-',
-                label='%s $\sigma$=%.3e' # n=%s $R^2$=%.2f $AIC$=%.2f '
-                 % (groups[i].capitalize(), np.std(ypred)), #, order, poly.rsquared, poly.aic),
+                label='%s'# $\sigma$=%.3e' # n=%s $R^2$=%.2f $AIC$=%.2f '
+                 % (groups[i]),#, np.std(ypred)), #, order, poly.rsquared, poly.aic),
                 alpha=1.0)
+        ax.set_yticklabels(['%.2e'%x for x in ax.get_yticks()])
+
 
     # Legend, text, title...
     ax.legend(prop={'size':8})
-    ax.text(0.15, 0.95, roi_name, horizontalalignment='center',
-        verticalalignment='center', transform = ax.transAxes,
-        fontproperties=font)
+    #ax.text(0.15, 0.95, roi_name, horizontalalignment='center',
+    #    verticalalignment='center', transform = ax.transAxes,
+    #    fontproperties=font)
     plt.title(roi_name, fontproperties=font)
 
 
@@ -170,6 +158,7 @@ def plot_regions(data, labels, csvfiles, subjects, names, groups, by,
     print names
     print 'groups', groups
 
+    table = []
     # Iterate on labels
     for i, roi_label in enumerate(labels):
         roi_name = '%s'%names[roi_label]
@@ -211,8 +200,14 @@ def plot_regions(data, labels, csvfiles, subjects, names, groups, by,
             df['subject'] = df.index
             df = df.sort_values(['apo', 'subject']).dropna()
 
-            boxplot_region(df, groups, by=by, ax=ax)
+            pval, hdr = boxplot_region(df, groups, by=by, ax=ax)
+            row = [roi_name]
+            row.extend(pval)
+            table.append(row)
     fig.savefig('/tmp/fig.svg')
+    columns = ['roi_name']
+    columns.extend(hdr)
+    return pd.DataFrame(table, columns=columns)
 
 def plot_significance(df, x1, x2, groups):
     # statistical annotation
@@ -227,6 +222,7 @@ def plot_significance(df, x1, x2, groups):
     if T.pvalue<0.05:
         opt['weight'] = 'bold'
     plt.text((x1+x2)*.5, y+h, '%.3f'%T.pvalue, **opt)
+    return T.pvalue
 
 def boxplot_region(df, groups, by='apo', ax=None):
     import seaborn as sns
@@ -234,16 +230,26 @@ def boxplot_region(df, groups, by='apo', ax=None):
     groups_sub = get_groups(df, groups_names = groups, by=by)
     if ax == None:
         pass
-        #fig = plt.figure(figsize=(6, 6))
-        #set_figaxes(df, ylim=[df['roi'].min(), df['roi'].max()])
-        #ax = fig.add_subplot(111)
+
     grp = []
     for i, each in enumerate(groups_sub):
         each['group'] = len(each[by]) * [groups[i]]
         grp.append(each)
     df = pd.concat(grp)
 
-    sns.boxplot(x='group', y='roi', data=df, showfliers=False, palette={'HO':'#ff9999', 'HT':'#ffd699','NC':'#99ccff', 'notHO':'#99ccff', 'f':'#ff9999', 'm':'#99ccff'})#, ax=ax)
+    pvals = []
+    hdr = []
+    box = sns.boxplot(x='group', y='roi', data=df, showfliers=False,
+           palette={'HO':'#ff9999', 'HT':'#ffd699','NC':'#99ccff', 'notHO':'#99ccff', 'f':'#ff9999', 'm':'#99ccff',
+           'apoe44':'#ff9999', 'apoe34':'#ffd699', 'apoe33':'#99ccff'})#, ax=ax)
+    #box = sns.violinplot(x='group', y='roi', data=df, #, showfliers=False,
+    #       palette={'HO':'#ff9999', 'HT':'#ffd699','NC':'#99ccff', 'notHO':'#99ccff', 'f':'#ff9999', 'm':'#99ccff',
+    #       'apoe44':'#ff9999', 'apoe34':'#ffd699', 'apoe33':'#99ccff'})#, ax=ax)
+    box.axes.set_yticklabels(['%.2e'%x for x in box.axes.get_yticks()])
+
     import itertools
     for i1, i2 in itertools.combinations(xrange(len(groups)), 2):
-        plot_significance(df, i1, i2, groups)
+        pval = plot_significance(df, i1, i2, groups)
+        pvals.append(pval)
+        hdr.append((groups[i1], groups[i2]))
+    return pvals, hdr
