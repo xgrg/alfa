@@ -4,8 +4,8 @@
 *- quickly remind of the distributions of each genotypic group*
 
 
-**Creating hand-drawn ROIs**
-*- how to defined ROIs over supra-threshold clusters using manually drawn regions*
+**Extracting values from ROI atlas.ipynb**
+*- self-explanatory*
 
 **SPM**
 *- a bunch of notebooks about design matrices, and exploration of SPM results*
@@ -32,10 +32,3 @@
 
 **Tools**
 *- testing various tools using notebooks*
-
-**Effect of ventricles**
-*- some work focused on the effect of ventricles that showed the impact of
-registration errors in this region*
-
-**Python for science BBRC**
-*- a few notebooks prepared for the introductory course at BarcelonaBeta*
