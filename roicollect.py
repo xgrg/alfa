@@ -87,6 +87,48 @@ def get_groups(dataset, groups_names, by='apo'):
     return groups
 
 
+def lm_plot(data, roivalues, ylim):
+    df = data.join(roivalues).dropna()
+
+    # correction without ajusting for age
+    adj_model = 'roi ~ 1 + gender'
+    ycorr = pd.DataFrame(correct(df, adj_model), columns=['roi'])
+    df = data.join(ycorr)
+    print 'Standard deviation after correction for model %s:'%adj_model,\
+            np.std(df['roi'])
+    df['subject'] = df.index
+    df = df.sort_values(['apo', 'subject']).dropna()
+
+    groups_sub = get_groups(df, groups_names = ['HO','HT','NC'], by='apo')
+    gd = []
+    for i, g in enumerate(groups_sub):
+        g['apo'] = ['HO','HT','NC'][i]
+        gd.append(g)
+    df = pd.concat(gd)
+
+    import seaborn as sns
+
+    lm = sns.lmplot(x='age', y='roi',  data=df, size=6.2, aspect=1.35, ci=90, hue='apo', legend=False,
+        palette={'HO':'#800000', 'HT':'#ff8000', 'NC':'#003366', 1: '#ffd699', 0:'#99ccff', 'notHO':'#99ccff', 'f':'#ff9999', 'm':'#99ccff',
+        'apoe44':'#ff9999', 'apoe34':'#ffd699', 'apoe33':'#99ccff'}, truncate=True, sharex=False,sharey=False)
+        #scatter_kws={'linewidths':1,'edgecolor':'#800000','#ff8000','#003366']})
+    ax = lm.axes
+    ax[0,0].set_ylim(ylim)
+    ax[0,0].set_xlim([44,76])
+    ax[0,0].set_yticklabels(['%.2e'%x for x in ax[0,0].get_yticks()])
+    ax[0,0].tick_params(labelsize=12)
+    ax[0,0].set_ylabel('')
+    ax[0,0].set_xlabel('age', fontsize=15, weight='bold')
+    #ax[0,0].set_yticklabels([]) #['%.2e'%x for x in ax[0,0].get_yticks()])
+    #ax[0,0].set_xticklabels([])
+
+    pal = {'HO':'#ff9999', 'HT':'#ffd699', 'NC':'#99ccff'}
+    pal2 = {'HO':'#800000','HT':'#ff8000','NC':'#003366'}
+
+    for i,row in enumerate(df.values):
+        lm.ax.plot(row[2], row[-1], ms=5.5, mew=0.4, marker='o', ls='-', mfc=pal[row[1]], mec=pal2[row[1]], lw=1)
+    lm.savefig('/tmp/fig.svg')
+
 def plot_region(dataset, roi_name='', groups=None, by='apo', order=1, ax=None, ylim=[0.0005, 0.0010], c=None):
     from scipy import interpolate
 
