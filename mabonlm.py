@@ -33,7 +33,7 @@ def denoise(source):
     print source, '->', target
     workingDir = osp.split(source)[0]
     tpl_fp = '/home/grg/denoising/mabonlm.tpl'
-    matlab_tpl = '/home/grg/matlab.tpl'
+    matlab_tpl = '/home/grg/denoising/matlab.tpl'
 
     tags={ 'source': source,
            'target': target,
