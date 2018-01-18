@@ -71,10 +71,7 @@ if __name__ == '__main__':
             Denoising using MABONLM
             '''))
 
-    parser.add_argument("-i", dest='input', type=str, required=True)
+    parser.add_argument('input', type=str)
     args = parser.parse_args()
     source = args.input
     denoise(source)
-
-
-
