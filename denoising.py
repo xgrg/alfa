@@ -2,21 +2,11 @@ from string import Template
 import subprocess
 import os.path as osp
 import os
-
+import logging as log
 import argparse
 import textwrap
 
 def createScript(source, text):
-    """Very not useful and way over simplistic method for creating a file
-
-    Args:
-        source: The absolute name of the script to create
-        text: Text to write into the script
-
-    Returns:
-        True if the file have been created
-
-    """
     try:
         with open(source, 'w') as f:
             f.write(text)
@@ -26,16 +16,6 @@ def createScript(source, text):
 
 
 def parseTemplate(dict, template):
-    """provide simpler string substitutions as described in PEP 292
-
-    Args:
-       dict: dictionary-like object with keys that match the placeholders in the template
-       template: object passed to the constructors template argument.
-
-    Returns:
-        the string substitute
-
-    """
     with open(template, 'r') as f:
         return Template(f.read()).safe_substitute(dict)
 
@@ -76,22 +56,42 @@ def launchCommand(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=N
 	print("Error produce by {}: {}\n".format(binary, error))
 
 
-def denoise(source):
+def rescale(source, target):
+    import nibabel as nib
+    import numpy as np
+    from nilearn import image
 
+    n = nib.load(source)
+    d = np.array(n.dataobj)
+    s = n.dataobj.slope
+    i = image.new_img_like(n, d/s)
+    i.to_filename(target)
+    log.info('Rescaling done: %s rescaled to %s'%(source, target))
+
+def denoise(source, do_rescale=False):
+    import tempfile
     assert(osp.isfile(source))
     filename, ext = osp.splitext(source)
-    print ext
     assert(ext in ['.nii', '.gz'])
-    if ext == '.gz':
-       print 'unzipping %s'%source
-       os.system('gunzip %s'%source)
-       source = filename
-    target = '%s_denoised.nii'%osp.splitext(source)[0]
-    print source, '->', target
-    workingDir = osp.split(source)[0]
+
     tpl_fp = '/home/grg/denoising/denoise.tpl'
     matlab_tpl = '/home/grg/denoising/matlab.tpl'
 
+    if ext == '.gz' and not rescale:
+       log.info('unzipping %s'%source)
+       os.system('gunzip %s'%source)
+       source = filename
+
+    target = '%s_denoised.nii'%osp.splitext(source)[0]
+    log.info('%s -> %s'%(source, target))
+
+    if do_rescale:
+        log.info('Rescaling...')
+        rescaled_fp = target.replace('denoised', 'rescaled')
+        rescale(source, rescaled_fp)
+        source = rescaled_fp
+
+    workingDir = osp.split(source)[0]
 
     tags={ 'source': source,
            'target': target,
@@ -102,17 +102,15 @@ def denoise(source):
 
     template = parseTemplate(tags, tpl_fp)
 
-    import tempfile
     code, tmpfile = tempfile.mkstemp(suffix='.m')
-    print 'creating tempfile %s'%tmpfile
+    log.info('creating tempfile %s'%tmpfile)
     createScript(tmpfile, template)
 
     tmpbase = osp.splitext(tmpfile)[0]
     tags={ 'script': tmpbase, 'workingDir': workingDir}
     cmd = parseTemplate(tags, matlab_tpl)
-    print cmd
+    log.info(cmd)
     os.system(cmd)
-    #launchCommand(cmd)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -120,9 +118,9 @@ if __name__ == '__main__':
             Denoising using LPCA
             '''))
 
-    parser.add_argument("-i", dest='input', type=str, required=True)
+    parser.add_argument('input', type=str)
+    parser.add_argument('--rescale', action='store_true')
     args = parser.parse_args()
+    log.basicConfig(level=log.INFO)
     source = args.input
-    denoise(source)
-
-
+    denoise(source, args.rescale)
