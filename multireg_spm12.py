@@ -14,7 +14,7 @@ try:
     import nipype.algorithms.modelgen as model   # model specification
     from nipype.interfaces.matlab import MatlabCommand
     from nipype.interfaces import spm
-    from nipype.interfaces.spm.model import MultipleRegressionDesign, FullFactorialDesign
+    from nipype.interfaces.spm.model import MultipleRegressionDesign, FactorialDesign
     import pandas as pd
     import os.path as osp
     import os
@@ -310,7 +310,7 @@ if __name__ == '__main__':
     parser.add_argument("destdir", type=str, help='Destination directory')
     parser.add_argument("--mask", type=str, help='Explicit mask used in the analysis',
         required=False,
-        default='/home/grg/spm/MNI_T1_brain_wo_csf.nii')
+        default='/home/grg/SPM/MNI_T1_brain_wo_csf.nii')
     parser.add_argument("--design", type=str,
         help='Design (0: Multiple Regression - 1: Full Factorial)',
         required=False, default=0)
