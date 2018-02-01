@@ -9,13 +9,13 @@ from glob import glob
 import os.path as osp
 import argparse
 
-def dartel_normalization_to_mni(ff_dir, l2_dir, base_dir, fp, template_fp, subjects, fwhm=0, modulate=False):
+def dartel_normalization_to_mni(ff_dir, l2_dir, base_dir, fp, template_fp, subjects, fwhm=0, doit=False):
     ff, rdwi = [], []
     subjects2 = []
     for s in subjects:
         print s
         #try:
-        fffp = glob(osp.join(ff_dir, 'u_r*%s*_c1_Template.nii'%s))[0]
+        fffp = glob(osp.join(ff_dir, 'u_rc1*%s*_Template.nii'%s))[0]
           # DARTEL flow fields
         print osp.join(l2_dir, 'r%s*_%s.nii'%(s, fp))
         rdwifp = glob(osp.join(l2_dir, 'r%s*_%s.nii'%(s, fp)))[0]
@@ -29,7 +29,7 @@ def dartel_normalization_to_mni(ff_dir, l2_dir, base_dir, fp, template_fp, subje
     print len(rdwi)
     print ff, rdwi
 
-    ans = raw_input('Continue ?')
+    if not doit: ans = raw_input('Continue ?')
 
     nm = pe.Node(spm.DARTELNorm2MNI(), name='Norm2MNI')
     nm.inputs.template_file = template_fp
@@ -41,7 +41,7 @@ def dartel_normalization_to_mni(ff_dir, l2_dir, base_dir, fp, template_fp, subje
     w = pe.Workflow(name='DARTELNorm2MNI')
     w.base_dir = base_dir
     w.add_nodes([nm])
-    w.run('MultiProc', plugin_args={'n_procs' : 6})
+    w.run('MultiProc', plugin_args={'n_procs' : 8})
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='`DARTELNorm2MNI.py` is used '
@@ -59,10 +59,11 @@ if __name__ == '__main__':
     parser.add_argument('dartel_template', help='Path to Template_6.nii')
     parser.add_argument('file_pattern', help='Pattern to look for in the filenames '
             '(from the second set)')
+    parser.add_argument('--doit', action='store_true', help='Run it without prompting')
 
     opts = parser.parse_args()
     subjects = json.load(open(opts.subjects))
 
     dartel_normalization_to_mni(opts.source_directory1, opts.source_directory2,
         opts.target_directory, opts.file_pattern, opts.dartel_template,
-        subjects, opts.fwhm)
+        subjects, opts.fwhm, opts.doit)
