@@ -40,6 +40,35 @@ def build_matrix(images, covlist, covtable, subjects=None):
     df = pd.DataFrame(data, columns=col)
     return df
 
+def build_tbss_matrix(df):
+    ''' Returns a TBSS-ready design matrix with corresponding contrasts'''
+
+    if 'images' in df.columns:
+        del df['images']
+    covlist = df.columns
+    mat = ['/NumWaves %s'%len(covlist)]
+    mat.append('/NumPoints %s'%len(df))
+    mat.append('/Matrix')
+    for row_index, row in df.iterrows():
+        s1 = ' '.join([str(row[e]) for e in covlist])
+        mat.append(s1)
+
+    con = ['/NumWaves %s'%len(covlist)]
+
+    for i, e in enumerate(covlist):
+        con.append('/ContrastName%s %s (+)'%(str(2*i), e))
+        con.append('/ContrastName%s %s (-)'%(str(2*i+1), e))
+    con.append('/NumContrasts %s'%(str(2*len(covlist))))
+    con.append('/Matrix')
+    for i, e in enumerate(covlist):
+        c = [0] * len(covlist)
+        c[i] = 1
+        con.append(' '.join([str(each) for each in c]))
+        c[i] = -1
+        con.append(' '.join([str(each) for each in c]))
+
+    return '\n'.join(mat), '\n'.join(con)
+
 def build_interaction(df, var, categ_var):
     '''Adds columns to a DataFrame with the interaction between a variable and
     a categorical variable.'''
