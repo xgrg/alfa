@@ -3,6 +3,7 @@
 import argparse
 import logging as log
 import os.path as osp
+import sys
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Updates an Axon database'\
@@ -18,7 +19,8 @@ if __name__ == '__main__':
     log.basicConfig(level=log.INFO)
     database = osp.abspath(opts.database)
     if not database in found_databases:
-        log.error('Database \'%s\' not found among %s'%(database, found_databases))
+        log.error('Database \'%s\' not found in %s'%(database, found_databases))
+        sys.exit(-1)
     log.info('Updating %s'%database)
     db = neuroHierarchy.databases.database(database)
     db.update(context=processes.defaultContext())
