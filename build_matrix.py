@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import logging as log
 
 def getdict(data, key, column, column2=None, value=None):
     import string
@@ -17,11 +18,11 @@ def build_matrix(images, covlist, covtable, subjects=None):
     Excel table.'''
     cov_sub = covtable['subject'].tolist()
     if subjects is None:
-        print 'Will take all subjects available'
+        log.info('Will take all subjects available')
         subjects = cov_sub
     diff_sub = set(subjects).difference(set(cov_sub))
     if len(diff_sub) != 0:
-        print diff_sub, 'mismatching'
+        log.error('%s mismatching'%diff_sub)
         assert(len(diff_sub) == 0)
 
     assert(len(images)==len(subjects))
@@ -29,7 +30,7 @@ def build_matrix(images, covlist, covtable, subjects=None):
     data = []
     for im, s in zip(images, subjects):
         if not str(s) in im:
-            print s, 'not in', im, 'you should check your data.'
+            log.info('%s not in %s you should check your data.'%(s, im))
         row = [im]
         for e in covlist:
             row.append(covtable[covtable['subject']==s][e].values[0])
@@ -40,11 +41,46 @@ def build_matrix(images, covlist, covtable, subjects=None):
     df = pd.DataFrame(data, columns=col)
     return df
 
+def dump(contrasts, fp):
+    def chunks(l, n):
+        for i in range(0, len(l), n):
+            yield l[i:i + n]
+    for each, f in zip(chunks(contrasts, len(contrasts)/len(fp)), fp):
+        w = open(f, 'w')
+        w.write(build_tbss_contrasts(each))
+        w.close()
+
+
+def tbss_covariates_simple_contrasts(covlist):
+    con = []
+    for i, each in enumerate(covlist):
+        c = [0] * len(covlist)
+        c[i] = 1
+        con.append(('%s(+)'%each, c))
+        c[i] = -1
+        con.append(('%s(-)'%each, c))
+    return con
+
+def tbss_2vs2_contrasts(var, covlist):
+    import itertools
+    con = []
+    for i, j in itertools.permutations(var, 2):
+        c = [0] * len(covlist)
+        c[covlist.index(i)] = 1
+        c[covlist.index(j)] = -1
+        con.append(('%s>%s'%(i,j), c))
+        c[covlist.index(i)] = -1
+        c[covlist.index(j)] = 1
+        con.append(('%s<%s'%(i,j), c))
+    return con
+
+
 def build_tbss_matrix(df):
-    ''' Returns a TBSS-ready design matrix with corresponding contrasts'''
+    ''' Returns a TBSS-ready design matrix'''
 
     if 'images' in df.columns:
         del df['images']
+
     covlist = df.columns
     mat = ['/NumWaves %s'%len(covlist)]
     mat.append('/NumPoints %s'%len(df))
@@ -53,21 +89,20 @@ def build_tbss_matrix(df):
         s1 = ' '.join([str(row[e]) for e in covlist])
         mat.append(s1)
 
-    con = ['/NumWaves %s'%len(covlist)]
+    return '\n'.join(mat)
 
-    for i, e in enumerate(covlist):
-        con.append('/ContrastName%s %s (+)'%(str(2*i), e))
-        con.append('/ContrastName%s %s (-)'%(str(2*i+1), e))
-    con.append('/NumContrasts %s'%(str(2*len(covlist))))
+def build_tbss_contrasts(contrasts):
+    con = ['/NumWaves %s'%len(contrasts[0][1])]
+
+    for i, (name, contrast) in enumerate(contrasts):
+        con.append('/ContrastName%s %s'%(i+1, name))
+    nb_contrasts = len(contrasts)
+    con.append('/NumContrasts %s'%str(nb_contrasts))
     con.append('/Matrix')
-    for i, e in enumerate(covlist):
-        c = [0] * len(covlist)
-        c[i] = 1
-        con.append(' '.join([str(each) for each in c]))
-        c[i] = -1
+    for i, (name, c) in enumerate(contrasts):
         con.append(' '.join([str(each) for each in c]))
 
-    return '\n'.join(mat), '\n'.join(con)
+    return '\n'.join(con)
 
 def build_interaction(df, var, categ_var):
     '''Adds columns to a DataFrame with the interaction between a variable and
