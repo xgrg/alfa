@@ -1,13 +1,13 @@
 import seaborn as sns
 import scipy as sc
 import pandas as pd
-import matplotlib as mpl
 import numpy as np
 import statsmodels.api as sm
 from statsmodels.formula.api import ols
 import logging as log
 
-mpl.rcParams['figure.facecolor'] = 'white'
+#import matplotlib as mpl
+#mpl.rcParams['figure.facecolor'] = 'white'
 
 def correct(df, model='roi ~ 1 + gender + age'): #educyears + apo' ):
     ''' Adjusts a variable according to a given model'''
@@ -114,7 +114,7 @@ def plot_significance(df, x1, x2, groups):
     return T.pvalue
 
 def lm_plot(y, x, data, covariates=['gender', 'age'], hue='apoe', ylim=None,
-        savefig=None):
+        savefig=None, facecolor='white'):
 
     # building a new table with only needed variables
     # y is renamed to roi to avoid potential issues with strange characters
@@ -122,7 +122,9 @@ def lm_plot(y, x, data, covariates=['gender', 'age'], hue='apoe', ylim=None,
     adj_model = 'roi ~ 1 + %s'%'+'.join(covariates)
     log.info('Fit model used for correction: %s'%adj_model)
     log.info('Dependent variable: %s'%y)
-    variables = [x, y, hue]
+    variables = [x, y]
+    if not hue is None:
+        variables.append(hue)
     variables.extend(covariates)
     df = pd.DataFrame(data, columns=variables).rename(columns={y:'roi'})
     df = df.dropna()
@@ -134,7 +136,7 @@ def lm_plot(y, x, data, covariates=['gender', 'age'], hue='apoe', ylim=None,
     df = df.join(ycorr)
 
     # plotting
-    lm = sns.lmplot(x=x, y=y,  data=df, size=6.2, hue='apoe', aspect=1.35, ci=90,
+    lm = sns.lmplot(x=x, y=y,  data=df, size=6.2, hue=hue, aspect=1.35, ci=90,
 	 truncate=True, sharex=False,sharey=False)
     ax = lm.axes
     if ylim is None:
@@ -149,4 +151,4 @@ def lm_plot(y, x, data, covariates=['gender', 'age'], hue='apoe', ylim=None,
     lm.fig.suptitle(roi_name)
 
     if not savefig is None:
-        lm.savefig(savefig)
+        lm.savefig(savefig, facecolor=facecolor)
