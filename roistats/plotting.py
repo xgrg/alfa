@@ -119,21 +119,24 @@ def lm_plot(y, x, data, covariates=['gender', 'age'], hue='apoe', ylim=None,
     # building a new table with only needed variables
     # y is renamed to roi to avoid potential issues with strange characters
     roi_name = y
-    adj_model = 'roi ~ 1 + %s'%'+'.join(covariates)
-    log.info('Fit model used for correction: %s'%adj_model)
     log.info('Dependent variable: %s'%y)
-    variables = [x, y]
+    variables = {x, y}
     if not hue is None:
-        variables.append(hue)
-    variables.extend(covariates)
-    df = pd.DataFrame(data, columns=variables).rename(columns={y:'roi'})
+        variables.add(hue)
+    for c in covariates:
+        variables.add(c)
+    df = pd.DataFrame(data, columns=list(variables)).rename(columns={y:'roi'})
     df = df.dropna()
     y = 'roi'
 
-    # correcting depending variable
-    ycorr = pd.DataFrame(correct(df, adj_model), columns=[y])
-    del df[y]
-    df = df.join(ycorr)
+    if len(covariates) != 0:
+        adj_model = 'roi ~ %s + 1'%'+'.join(covariates)
+        log.info('Fit model used for correction: %s'%adj_model)
+
+        # correcting depending variable
+        ycorr = pd.DataFrame(correct(df, adj_model), columns=[y])
+        del df[y]
+        df = df.join(ycorr)
 
     # plotting
     lm = sns.lmplot(x=x, y=y,  data=df, size=6.2, hue=hue, aspect=1.35, ci=90,
@@ -152,3 +155,4 @@ def lm_plot(y, x, data, covariates=['gender', 'age'], hue='apoe', ylim=None,
 
     if not savefig is None:
         lm.savefig(savefig, facecolor=facecolor)
+    return df
