@@ -6,6 +6,7 @@ import os.path as op
 import numpy as np
 sys.path.append(op.join(op.expanduser('~'), 'git', 'alfa'))
 from roistats import collect
+import json
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Collect ROI stats '\
@@ -32,5 +33,7 @@ if __name__ == '__main__':
     table = collect.roistats_from_maps(opts.images, opts.roi, opts.images, opts.labels,
             getattr(np, opts.function), n_jobs)
     table.to_excel(opts.o)
+    d = {'images': opts.images, 'atlas': opts.roi}
+    json.dump(d, open(opts.o.replace('.xls', '.json'), 'w'))
 
 
