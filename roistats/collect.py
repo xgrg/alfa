@@ -5,7 +5,7 @@ import pandas as pd
 from joblib import Parallel, delayed
 import logging as log
 
-def roistats_from_map(map_fp, atlas, func):
+def roistats_from_map(map_fp, atlas, func=np.mean):
      m = np.array(nib.load(map_fp).dataobj)
      n_labels = list(np.unique(atlas))
      n_labels.remove(0)
