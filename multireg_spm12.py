@@ -138,7 +138,8 @@ def make_contrasts(names):
     cov = {'age': 'Linear age',
             'agesq': 'Age square',
             'educyears': 'Educational Years',
-            'gender': 'Gender'}
+            'gender': 'Gender',
+            'centiloids': 'Centiloids'}
 
     for k, v in cov.items():
         if k in names:
