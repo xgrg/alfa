@@ -56,7 +56,7 @@ def tbss_covariates_simple_contrasts(covlist):
     for i, each in enumerate(covlist):
         c = [0] * len(covlist)
         c[i] = 1
-        con.append(('%s(+)'%each, c))
+        con.append(('%s(+)'%each, list(c)))
         c[i] = -1
         con.append(('%s(-)'%each, c))
     return con
@@ -69,9 +69,6 @@ def tbss_2vs2_contrasts(var, covlist):
         c[covlist.index(i)] = 1
         c[covlist.index(j)] = -1
         con.append(('%s>%s'%(i,j), c))
-        c[covlist.index(i)] = -1
-        c[covlist.index(j)] = 1
-        con.append(('%s<%s'%(i,j), c))
     return con
 
 
@@ -113,8 +110,8 @@ def build_interaction(df, var, categ_var):
     grp_labels = {0:'23', 1:'24', 2:'33', 3:'34', 4:'44'} \
         if categ_var == 'apo' else groups
 
-    for i in groups:
-        apo = pd.DataFrame(df[categ_var] == i, dtype=np.int)
+    for i, grp in enumerate(groups):
+        apo = pd.DataFrame(df[categ_var] == grp, dtype=np.int)
         apocol = '%s%s'%(categ_var, grp_labels[i])
         df[apocol] = apo
         intercol = '%s%s'%(var, grp_labels[i])
