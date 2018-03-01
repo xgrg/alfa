@@ -45,9 +45,12 @@ def dump(contrasts, fp):
     def chunks(l, n):
         for i in range(0, len(l), n):
             yield l[i:i + n]
-    for each, f in zip(chunks(contrasts, len(contrasts)/len(fp)), fp):
+
+    import math
+    chunk_size = math.ceil(len(contrasts)/len(fp))
+    for i, (each, f) in enumerate(zip(chunks(contrasts, chunk_size), fp)):
         w = open(f, 'w')
-        w.write(build_tbss_contrasts(each))
+        w.write(build_tbss_contrasts(each, mock=i*chunk_size))
         w.close()
 
 
@@ -88,15 +91,20 @@ def build_tbss_matrix(df):
 
     return '\n'.join(mat)
 
-def build_tbss_contrasts(contrasts):
+def build_tbss_contrasts(contrasts, mock=0):
     con = ['/NumWaves %s'%len(contrasts[0][1])]
 
-    for i, (name, contrast) in enumerate(contrasts):
+    contrasts2 = []
+    for i in xrange(mock):
+        contrasts2.append(('mock%s'%(i+1), [0]*len(contrasts[0][1])))
+    contrasts2.extend(contrasts)
+
+    for i, (name, contrast) in enumerate(contrasts2):
         con.append('/ContrastName%s %s'%(i+1, name))
-    nb_contrasts = len(contrasts)
+    nb_contrasts = len(contrasts2)
     con.append('/NumContrasts %s'%str(nb_contrasts))
     con.append('/Matrix')
-    for i, (name, c) in enumerate(contrasts):
+    for i, (name, c) in enumerate(contrasts2):
         con.append(' '.join([str(each) for each in c]))
 
     return '\n'.join(con)
