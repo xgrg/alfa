@@ -1,23 +1,6 @@
-import seaborn as sns
-import scipy as sc
-import pandas as pd
-import numpy as np
-import statsmodels.api as sm
-from statsmodels.formula.api import ols
-import logging as log
 
 #import matplotlib as mpl
 #mpl.rcParams['figure.facecolor'] = 'white'
-
-def correct(df, model='roi ~ 1 + gender + age'): #educyears + apo' ):
-    ''' Adjusts a variable according to a given model'''
-    model = ols(model, data=df)
-    depvar = model.endog_names
-    test_scores = model.fit()
-    err = test_scores.predict(df) - df[depvar]
-    ycorr = np.mean(df[depvar]) - err
-
-    return ycorr
 
 def set_figaxes(df, x='age', y='roi', ylim=None, xlim=None):
     font = FontProperties(family='sans-serif', weight='heavy')
@@ -30,6 +13,8 @@ def set_figaxes(df, x='age', y='roi', ylim=None, xlim=None):
 
 def plot_region(data, roi_name='', by='apoe', ax=None, ylim=[0.0005, 0.0010]):
     from scipy import interpolate
+    import pandas as pd
+    from statsmodels.formula.api import ols
 
     if ax == None:
         fig = plt.figure(figsize=(6, 6))
@@ -69,41 +54,69 @@ def plot_region(data, roi_name='', by='apoe', ax=None, ylim=[0.0005, 0.0010]):
     ax.legend(prop={'size':8})
     plt.title(roi_name, fontproperties=font)
 
-def boxplot_region(df, groups, by='apo', ax=None):
-    # Plots the corrected values and fits a line over them
-    groups_sub = get_groups(df, groups_names = groups, by=by)
-    if ax == None:
-        pass
+def boxplot_region(y, data, groups, by='apo', covariates=[]):
+    import seaborn as sns
+    import pandas as pd
+    import logging as log
+    from __init__ import correct
 
-    grp = []
-    for i, each in enumerate(groups_sub):
-        each['group'] = len(each[by]) * [groups[i]]
-        grp.append(each)
-    df = pd.concat(grp)
+    # grouping data
+    col = []
+    for i, row in data.iterrows():
+        for k, group in groups.items():
+            if row[by] in group:
+                col.append(k)
+    data['_group'] = col
+
+    # building a new table with only needed variables
+    # y is renamed to roi to avoid potential issues with strange characters
+    roi_name = y
+    log.info('Dependent variable: %s'%y)
+    variables = {'_group', y, by}
+    for c in covariates:
+        variables.add(c)
+    df = pd.DataFrame(data, columns=list(variables)).rename(columns={y:'roi'})
+    df = df.dropna()
+    y = 'roi'
+
+    if len(covariates) != 0:
+        adj_model = 'roi ~ %s + 1'%'+'.join(covariates)
+        log.info('Fit model used for correction: %s'%adj_model)
+
+        # correcting depending variable
+        ycorr = pd.DataFrame(correct(df, adj_model), columns=[y])
+        del df[y]
+        df = df.join(ycorr)
 
     pvals = []
     hdr = []
-    box = sns.boxplot(x='group', y='roi', data=df, showfliers=False,
-           palette={'HO':'#ff9999', 'HT':'#ffd699','NC':'#99ccff', 'notHO':'#99ccff', 'f':'#ff9999', 'm':'#99ccff',
+    box = sns.boxplot(x='_group', y='roi', data=df, showfliers=False,
+           palette={'HO':'#ff9999', 'HT':'#ffd699','NC':'#99ccff', 'nHO':'#99ccff', 'f':'#ff9999', 'm':'#99ccff',
            'apoe44':'#ff9999', 'apoe34':'#ffd699', 'apoe33':'#99ccff'})#, ax=ax)
     #box = sns.violinplot(x='group', y='roi', data=df, #, showfliers=False,
     #       palette={'HO':'#ff9999', 'HT':'#ffd699','NC':'#99ccff', 'notHO':'#99ccff', 'f':'#ff9999', 'm':'#99ccff',
     #       'apoe44':'#ff9999', 'apoe34':'#ffd699', 'apoe33':'#99ccff'})#, ax=ax)
     box.axes.set_yticklabels(['%.2e'%x for x in box.axes.get_yticks()])
+    xlabel = 'groups%s'%{False:'', True:' (corrected for %s)'%(' and '.join(covariates))}[len(covariates)!=0]
+    box.axes.set_xlabel(xlabel, fontsize=15, weight='bold')
+    box.axes.set_ylabel('')
+    box.set_title(roi_name)
 
     import itertools
-    for i1, i2 in itertools.combinations(xrange(len(groups)), 2):
-        pval = plot_significance(df, i1, i2, groups)
+    for i1, i2 in itertools.combinations(xrange(len(groups.keys())), 2):
+        pval = plot_significance(df, i1, i2, groups.keys())
         pvals.append(pval)
-        hdr.append((groups[i1], groups[i2]))
+        hdr.append((groups[groups.keys()[i1]], groups[groups.keys()[i2]]))
     return pvals, hdr
 
 
 def plot_significance(df, x1, x2, groups):
     # statistical annotation
+    import scipy as sc
+    from matplotlib import pyplot as plt
 
-    T = sc.stats.ttest_ind(df[df['group']==groups[x1]]['roi'],
-            df[df['group']==groups[x2]]['roi'])
+    T = sc.stats.ttest_ind(df[df['_group']==groups[x1]]['roi'],
+            df[df['_group']==groups[x2]]['roi'])
     print T.pvalue
     y, h, col = df['roi'].mean() + df['roi'].std() + 1e-4, 1e-5, 'k'
     plt.plot([x1, x1, x2, x2], [y, y+h, y+h, y], lw=1.5, c=col)
@@ -115,6 +128,10 @@ def plot_significance(df, x1, x2, groups):
 
 def lm_plot(y, x, data, covariates=['gender', 'age'], hue='apoe', ylim=None,
         savefig=None, facecolor='white'):
+    import seaborn as sns
+    import logging as log
+    import pandas as pd
+    from __init__ import correct
 
     # building a new table with only needed variables
     # y is renamed to roi to avoid potential issues with strange characters
@@ -150,7 +167,8 @@ def lm_plot(y, x, data, covariates=['gender', 'age'], hue='apoe', ylim=None,
     ax[0,0].set_yticklabels(['%.2e'%i for i in ax[0,0].get_yticks()])
     ax[0,0].tick_params(labelsize=12)
     ax[0,0].set_ylabel('')
-    ax[0,0].set_xlabel(x, fontsize=15, weight='bold')
+    xlabel = 'groups%s'%{False:'', True:' (corrected for %s)'%(' and '.join(covariates))}[len(covariates)!=0]
+    ax[0,0].set_xlabel(xlabel, fontsize=15, weight='bold')
     lm.fig.suptitle(roi_name)
 
     if not savefig is None:
